@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navigator - ABS Setup Timeline</title>
+<style>
+  :root {
+    --primary: #1a2f5e;
+    --secondary: #2e5db3;
+    --accent: #e8a020;
+    --milestone-color: #2e5db3;
+    --fundflow-color: #0d7a5f;
+    --workflow-color: #7c3aed;
+    --milestone-light: #eef3fc;
+    --fundflow-light: #eaf5f1;
+    --workflow-light: #f3ecff;
+    --done: #22c55e;
+    --pending: #f59e0b;
+    --upcoming: #94a3b8;
+    --holiday: #ef4444;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.02em; }
+  .header-left p { font-size: 0.85rem; opacity: 0.75; margin-top: 3px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .lang-toggle { display: flex; background: rgba(255,255,255,0.15); border-radius: 20px; overflow: hidden; }
+  .lang-btn { padding: 6px 16px; border: none; background: transparent; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s; }
+  .lang-btn.active { background: rgba(255,255,255,0.3); }
+  .today-badge { background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
+  /* Layout */
+  .main { max-width: 1400px; margin: 0 auto; padding: 24px 20px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+  @media (max-width: 1024px) { .main { grid-template-columns: 1fr; } }
+
+  /* Card */
+  .card { background: var(--card); border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); padding: 20px; }
+  .card-title { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-title .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* Progress Summary */
+  .progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .progress-box { border-radius: 10px; padding: 14px 16px; }
+  .progress-box.milestone { background: var(--milestone-light); border-left: 4px solid var(--milestone-color); }
+  .progress-box.fundflow { background: var(--fundflow-light); border-left: 4px solid var(--fundflow-color); }
+  .progress-box h3 { font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; }
+  .progress-box h3.milestone { color: var(--milestone-color); }
+  .progress-box h3.fundflow { color: var(--fundflow-color); }
+  .progress-bar-wrap { background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar { height: 100%; border-radius: 8px; transition: width 0.4s; }
+  .progress-bar.milestone { background: var(--milestone-color); }
+  .progress-bar.fundflow { background: var(--fundflow-color); }
+  .progress-meta { font-size: 0.75rem; color: var(--text-light); display: flex; justify-content: space-between; }
+
+  /* This Week */
+  .week-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .week-range { font-size: 0.84rem; color: var(--text-light); font-weight: 600; }
+  .week-count { font-size: 0.8rem; color: var(--text-light); }
+  .week-list { display: flex; flex-direction: column; gap: 10px; }
+  .week-item { display: flex; gap: 12px; padding: 12px; border: 1px solid var(--border); background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border-radius: 10px; }
+  .week-item.today { border-color: var(--accent); background: #fffbf0; }
+  .week-item.done { opacity: 0.72; }
+  .week-date-box { min-width: 54px; border-radius: 8px; padding: 8px 6px; text-align: center; background: var(--bg); border: 1px solid var(--border); }
+  .week-date-month { font-size: 0.68rem; color: var(--text-light); font-weight: 700; text-transform: uppercase; }
+  .week-date-day { font-size: 1.1rem; color: var(--primary); font-weight: 700; line-height: 1.1; margin-top: 2px; }
+  .week-content { flex: 1; min-width: 0; }
+  .week-task-name { font-size: 0.88rem; color: var(--text); font-weight: 700; }
+  .week-task-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 5px; }
+  .week-task-note { font-size: 0.76rem; color: var(--text-light); margin-top: 6px; }
+  .week-empty { padding: 16px 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-light); text-align: center; font-size: 0.84rem; background: #fafcff; }
+
+  /* Timeline Tabs */
+  .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { padding: 7px 18px; border-radius: 20px; border: 2px solid transparent; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .tab.milestone { color: var(--milestone-color); border-color: var(--milestone-color); }
+  .tab.milestone.active { background: var(--milestone-color); color: white; }
+  .tab.fundflow { color: var(--fundflow-color); border-color: var(--fundflow-color); }
+  .tab.fundflow.active { background: var(--fundflow-color); color: white; }
+  .tab.workflow { color: var(--workflow-color); border-color: var(--workflow-color); }
+  .tab.workflow.active { background: var(--workflow-color); color: white; }
+  .tab.all { color: var(--primary); border-color: var(--primary); }
+  .tab.all.active { background: var(--primary); color: white; }
+
+  /* Timeline Items */
+  .timeline-wrap { position: relative; }
+  .timeline-spine { position: absolute; left: 26px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; position: relative; cursor: pointer; }
+  .timeline-item:last-child { margin-bottom: 0; }
+  .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; z-index: 1; border: 3px solid white; box-shadow: 0 0 0 2px var(--border); transition: transform 0.2s; }
+  .timeline-item:hover .step-icon { transform: scale(1.15); }
+  .step-icon.done { background: var(--done); color: white; box-shadow: 0 0 0 2px var(--done); }
+  .step-icon.today { background: var(--accent); color: white; box-shadow: 0 0 0 2px var(--accent); animation: pulse 2s infinite; }
+  .step-icon.upcoming-milestone { background: var(--milestone-light); color: var(--milestone-color); box-shadow: 0 0 0 2px var(--milestone-color); }
+  .step-icon.upcoming-fundflow { background: var(--fundflow-light); color: var(--fundflow-color); box-shadow: 0 0 0 2px var(--fundflow-color); }
+  .step-icon.upcoming-workflow { background: var(--workflow-light); color: var(--workflow-color); box-shadow: 0 0 0 2px var(--workflow-color); }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 2px var(--accent)} 50%{box-shadow:0 0 0 5px rgba(232,160,32,0.3)} }
+
+  .step-content { flex: 1; background: var(--bg); border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border); transition: all 0.2s; }
+  .timeline-item:hover .step-content { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #c7d4e8; }
+  .timeline-item.today-item .step-content { border-color: var(--accent); background: #fffbf0; }
+  .step-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .step-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+  .step-date { font-size: 0.78rem; color: var(--text-light); white-space: nowrap; }
+  .step-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+  .step-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .step-tag.milestone { background: var(--milestone-light); color: var(--milestone-color); }
+  .step-tag.fundflow { background: var(--fundflow-light); color: var(--fundflow-color); }
+  .step-tag.workflow { background: var(--workflow-light); color: var(--workflow-color); }
+  .step-tag.bd { background: #f1f5f9; color: #475569; }
+  .step-tag.group { background: #f8fafc; color: #475569; }
+  .step-note { font-size: 0.78rem; color: var(--text-light); margin-top: 4px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--border); }
+  .check-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7rem; color: var(--fundflow-color); font-weight: 600; }
+
+  /* Status checkbox */
+  .step-checkbox { appearance: none; width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.2s; }
+  .step-checkbox:checked { background: var(--done); border-color: var(--done); }
+  .step-checkbox:checked::after { content: '✓'; color: white; font-size: 11px; display: block; text-align: center; line-height: 1; }
+
+  /* Calendar */
+  .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-nav { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-light); padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
+  .cal-nav:hover { background: var(--border); }
+  .cal-month { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+  .cal-day-header { text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--text-light); padding: 4px 0; }
+  .cal-cell { position: relative; text-align: center; padding: 6px 2px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: background 0.15s; min-height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+  .cal-cell:hover { background: var(--border); }
+  .cal-cell.other-month { color: var(--text-light); opacity: 0.5; }
+  .cal-cell.today-cell { background: var(--accent) !important; color: white !important; font-weight: 700; border-radius: 6px; }
+  .cal-cell.holiday { color: var(--holiday); font-weight: 600; }
+  .cal-cell.has-event .cal-dots { display: flex; gap: 2px; justify-content: center; margin-top: 2px; }
+  .cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .cal-dot.milestone { background: var(--milestone-color); }
+  .cal-dot.fundflow { background: var(--fundflow-color); }
+  .cal-dot.workflow { background: var(--workflow-color); }
+  .cal-dots { display: flex; gap: 2px; justify-content: center; margin-top: 2px; }
+
+  /* Tooltip */
+  .cal-tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.72rem; white-space: nowrap; z-index: 100; pointer-events: none; margin-bottom: 4px; max-width: 200px; white-space: normal; text-align: left; }
+  .cal-cell:hover .cal-tooltip { display: block; }
+
+  /* Upcoming Events */
+  .upcoming-list { display: flex; flex-direction: column; gap: 8px; }
+  .upcoming-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); }
+  .upcoming-date-box { text-align: center; min-width: 40px; }
+  .upcoming-month { font-size: 0.65rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
+  .upcoming-day { font-size: 1.1rem; font-weight: 700; color: var(--primary); line-height: 1; }
+  .upcoming-info { flex: 1; }
+  .upcoming-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+  .upcoming-stream { font-size: 0.7rem; margin-top: 1px; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; font-size: 0.78rem; }
+  .legend-item { display: flex; align-items: center; gap: 5px; color: var(--text-light); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Holidays section */
+  .holiday-list { display: flex; flex-direction: column; gap: 6px; }
+  .holiday-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 6px 10px; background: #fff5f5; border-radius: 6px; border-left: 3px solid var(--holiday); color: var(--holiday); }
+
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1 id="h-title">Navigator · ABS Setup Timeline</h1>
+    <p id="h-sub">Transaction tracking dashboard · Apr-Jun 2026</p>
+  </div>
+  <div class="header-right">
+    <div class="today-badge" id="today-badge"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
+      <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- LEFT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- This Week -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent)"></span><span id="lbl-this-week">本周任务</span></div>
+      <div class="week-head">
+        <div class="week-range" id="week-range"></div>
+        <div class="week-count" id="week-count"></div>
+      </div>
+      <div class="week-list" id="week-list"></div>
+    </div>
+
+    <!-- Progress Summary -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--primary)"></span><span id="lbl-progress">整体进度</span></div>
+      <div class="progress-grid">
+        <div class="progress-box milestone">
+          <h3 class="milestone" id="lbl-km">关键里程碑</h3>
+          <div class="progress-bar-wrap"><div class="progress-bar milestone" id="pb-milestone" style="width:0%"></div></div>
+          <div class="progress-meta"><span id="pm-done">0 已完成</span><span id="pm-total">0 共</span></div>
+        </div>
+        <div class="progress-box fundflow">
+          <h3 class="fundflow" id="lbl-ff">资金流</h3>
+          <div class="progress-bar-wrap"><div class="progress-bar fundflow" id="pb-fundflow" style="width:0%"></div></div>
+          <div class="progress-meta"><span id="pf-done">0 已完成</span><span id="pf-total">0 共</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--secondary)"></span><span id="lbl-timeline">交易时间表</span></div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--done)"></div><span id="lg-done">已完成</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span id="lg-today">今天</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--milestone-color)"></div><span id="lg-km">关键里程碑</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--fundflow-color)"></div><span id="lg-ff">资金流</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--workflow-color)"></div><span id="lg-wf">工作流</span></div>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab all active" onclick="filterTimeline('all')" id="tab-all">全部</button>
+        <button class="tab milestone" onclick="filterTimeline('milestone')" id="tab-milestone">关键里程碑</button>
+        <button class="tab fundflow" onclick="filterTimeline('fundflow')" id="tab-fundflow">资金流</button>
+        <button class="tab workflow" onclick="filterTimeline('workflow')" id="tab-workflow">工作流</button>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="timeline-spine"></div>
+        <div id="timeline-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Calendar -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent)"></span><span id="lbl-calendar">日历视图</span></div>
+      <div class="calendar-header">
+        <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
+        <span class="cal-month" id="cal-month-label"></span>
+        <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <!-- Upcoming -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--pending)"></span><span id="lbl-upcoming">即将到来</span></div>
+      <div class="upcoming-list" id="upcoming-list"></div>
+    </div>
+
+    <!-- Holidays -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--holiday)"></span><span id="lbl-holidays">节假日提示</span></div>
+      <div class="holiday-list" id="holiday-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────
+const HOLIDAYS = [
+  { date: '2026-04-06', zh: '清明节', en: 'Qingming Festival' },
+  { date: '2026-05-01', zh: '劳动节', en: 'Labour Day' },
+  { date: '2026-05-04', zh: '劳动节假期', en: 'Labour Day Holiday' },
+  { date: '2026-05-05', zh: '劳动节假期', en: 'Labour Day Holiday' },
+];
+
+const MILESTONES = [
+  { id: 'm1', name_zh: '中金流程', name_en: 'CICC Internal Process', date: '2026-04-03', bd: 0, note_zh: null, note_en: null, check: false },
+  { id: 'm2', name_zh: '文件定稿', name_en: 'Docs Finalized', date: '2026-04-02', bd: 0, note_zh: '待定：SPA、OMA', note_en: 'Pending: SPA, OMA', check: false },
+  { id: 'm3', name_zh: '递交封卷材料', name_en: 'Submit Finalized Docs', date: '2026-04-07', bd: 1, note_zh: null, note_en: null, check: false },
+  { id: 'm4', name_zh: '无异议函', name_en: 'SHEx No-objection Letter', date: '2026-04-09', bd: 2, note_zh: null, note_en: null, check: false },
+  { id: 'm5', name_zh: 'ESR 上会', name_en: 'ESR FIC', date: '2026-04-09', bd: 0, note_zh: null, note_en: null, check: false },
+  { id: 'm6', name_zh: '文件传签完成', name_en: 'Docs Signed Off', date: '2026-04-10', bd: 1, note_zh: '签署方：ESR、China Life、CICC、Guangfa Bank、IRE', note_en: 'Signing Parties: ESR, China Life, CICC, Guangfa Bank, IRE', check: false },
+  { id: 'm7', name_zh: '提交发行前备案', name_en: 'Submit Pre-Issuance Filings', date: '2026-04-10', bd: 0, note_zh: null, note_en: null, check: false },
+  { id: 'm8', name_zh: '发行前备案通过 / 提交发行公告', name_en: 'Pre-Issuance Filing Approved / Submit Issuance Announcement', date: '2026-04-14', bd: 2, note_zh: null, note_en: null, check: false },
+  { id: 'm9', name_zh: '簿记 / 协议定价日 / 发行结果公告', name_en: 'Bookbuilding / Announcement of Issuance Results', date: '2026-04-16', bd: 2, note_zh: null, note_en: null, check: false },
+  { id: 'm10', name_zh: '缴款通知书', name_en: 'Payment Notice / Subscription Allocation Notification', date: '2026-04-17', bd: 1, note_zh: null, note_en: null, check: false },
+  { id: 'm11', name_zh: '签署认购协议', name_en: 'Subscription Signing', date: '2026-04-17', bd: 0, note_zh: null, note_en: null, check: false },
+  { id: 'm12', name_zh: '投资人完成缴款', name_en: 'Investors Complete Capital Injection to ABS', date: '2026-04-21', bd: 2, note_zh: null, note_en: null, check: false },
+  { id: 'm13', name_zh: 'ABS 发行', name_en: 'ABS Set Up', date: '2026-04-22', bd: 1, note_zh: null, note_en: null, check: false },
+];
+
+const FUNDFLOWS = [
+  { id: 'f1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', bd: null, note_zh: null, note_en: null, check: false },
+  { id: 'f2', name_zh: 'Lux 资金打出', name_en: 'Lux Funding Wire to Ruifu', date: '2026-04-10', bd: null, note_zh: null, note_en: null, check: false },
+  { id: 'f3', name_zh: 'Lux 资金抵达 Ruifu', name_en: 'Lux Funding Arrives at Ruifu', date: '2026-04-13', bd: 1, note_zh: null, note_en: null, check: false },
+  { id: 'f4', name_zh: 'Ruifu 资金静置期', name_en: 'Ruifu Funding Mandatory On-hold Period', date: '2026-04-16', bd: 3, note_zh: null, note_en: null, check: false },
+  { id: 'f5', name_zh: 'AML 审核通过', name_en: 'AML Greenlight', date: '2026-04-17', bd: 1, note_zh: '前置核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: false },
+  { id: 'f6', name_zh: 'Ruifu USD 转 RMB', name_en: 'Ruifu USD to RMB', date: '2026-04-17', bd: 1, note_zh: '核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: true },
+  { id: 'f7', name_zh: '发起 Ruifu 向 ABS 缴款', name_en: 'Initiate Capital Injection from Ruifu to ABS', date: '2026-04-20', bd: 1, note_zh: null, note_en: null, check: false },
+  { id: 'f8', name_zh: '完成 ABS 缴款', name_en: 'Complete Capital Injection to ABS', date: '2026-04-21', bd: 1, note_zh: '核查：和外部投资人同一天缴款', note_en: 'Check: On the same day as external investor capital injection', check: true },
+];
+
+const WORKFLOWS = [
+  { id: 'w1', name_zh: '和奉贤规自局沟通签约', name_en: 'Coordinate signing with Fengxian Planning and Natural Resources Bureau', date: '2026-04-14', offset: 'T-6', duration_zh: '当日', duration_en: 'Same day', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: null, note_en: null, check: false },
+  { id: 'w2', name_zh: '签订土地出让合同时间', name_en: 'Execute land grant contract', date: '2026-04-21', offset: 'T-1', duration_zh: '一周', duration_en: '1 week', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '交易确定性高后，ABS设立日（即为交割日）前', note_en: 'After transaction certainty is high and before ABS set-up date, which is the closing date', check: false },
+  { id: 'w3', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate mortgage release with Guangfa in advance', date: '2026-04-23', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
+  { id: 'w4', name_zh: '签署土地出让合同', name_en: 'Sign land grant contract', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '太仓和昆山完成转让', note_en: 'After Taicang and Kunshan transfers are completed', check: false },
+  { id: 'w5', name_zh: '进行奉贤项目公司股权转让', name_en: 'Complete Fengxian project company equity transfer', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '签署土地出让合同', note_en: 'After signing the land grant contract', check: false },
+  { id: 'w6', name_zh: '和深圳金融局开始沟通减资事宜', name_en: 'Start discussions with Shenzhen Financial Bureau on capital reduction', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: 'IRE 资金安排', category_en: 'IRE Funding', note_zh: null, note_en: null, check: false },
+  { id: 'w7', name_zh: '请广发发起解除抵押流程', name_en: 'Ask Guangfa to initiate the mortgage release process', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '收到全部 equity 款项', note_en: 'After receiving all equity proceeds', check: false },
+  { id: 'w8', name_zh: '完成市不动产中心数据入库', name_en: 'Complete municipal real estate center data filing', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
+  { id: 'w9', name_zh: '银行到不动产中心解除抵押', name_en: 'Bank completes mortgage release at the real estate center', date: '2026-06-01', offset: 'T+25', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '待确定解除抵押前提', note_en: 'Prerequisites for mortgage release to be confirmed', check: false },
+  { id: 'w10', name_zh: '景顺到不动产中心办理两证合一', name_en: 'Invesco completes the two-certificates consolidation at the real estate center', date: '2026-06-08', offset: 'T+30', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '解除抵押，必须在 08/18/2026 资金外转之前完成', note_en: 'Mortgage must be released before the outbound remittance on 08/18/2026', check: false },
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────
+let lang = 'zh';
+let currentFilter = 'all';
+let calYear = 2026, calMonth = 3; // 0-indexed: 3 = April
+const checked = {};
+const today = new Date();
+today.setHours(0,0,0,0);
+const todayStr = fmtDate(today);
+
+function fmtDate(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function parseDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function daysDiff(dateStr) {
+  return Math.round((parseDate(dateStr)-today)/86400000);
+}
+
+// ─── LANGUAGE ─────────────────────────────────────────────────────────
+const T = {
+  zh: {
+    title:'Navigator · ABS 发行时间表',
+    sub:'交易追踪仪表板 · 2026年4月-6月',
+    thisWeek:'本周任务',
+    weekEmpty:'本周暂无任务',
+    weekCount: c => `本周共 ${c} 项任务`,
+    progress:'整体进度',
+    km:'关键里程碑',
+    ff:'资金流',
+    done:'已完成',
+    total:'共',
+    timeline:'交易时间表',
+    calendar:'日历视图',
+    upcoming:'即将到来',
+    holidays:'节假日提示',
+    lgDone:'已完成',
+    lgToday:'今天',
+    lgKm:'关键里程碑',
+    lgFf:'资金流',
+    lgWf:'工作流',
+    tabAll:'全部',
+    tabKm:'关键里程碑',
+    tabFf:'资金流',
+    tabWf:'工作流',
+    bd:'BD',
+    duration:'周期',
+    today:'今天',
+    daysLeft: d => d===0?'今天': d>0?`还有 ${d} 天`:`${-d} 天前`,
+    check:'核查前置条件',
+    months:['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+    weekdays:['日','一','二','三','四','五','六'],
+  },
+  en: {
+    title:'Navigator · ABS Setup Timeline',
+    sub:'Transaction tracking dashboard · Apr-Jun 2026',
+    thisWeek:'This Week',
+    weekEmpty:'No tasks scheduled this week',
+    weekCount: c => `${c} task${c===1?'':'s'} this week`,
+    progress:'Overall Progress',
+    km:'Key Milestones',
+    ff:'Fund Flow',
+    done:'Done',
+    total:'Total',
+    timeline:'Transaction Timeline',
+    calendar:'Calendar View',
+    upcoming:'Upcoming Events',
+    holidays:'Holiday Alerts',
+    lgDone:'Completed',
+    lgToday:'Today',
+    lgKm:'Key Milestones',
+    lgFf:'Fund Flow',
+    lgWf:'Workflow',
+    tabAll:'All',
+    tabKm:'Key Milestones',
+    tabFf:'Fund Flow',
+    tabWf:'Workflow',
+    bd:'BD',
+    duration:'Duration',
+    today:'Today',
+    daysLeft: d => d===0?'Today': d>0?`In ${d} day${d>1?'s':''}`:`${-d} day${-d>1?'s':''} ago`,
+    check:'Pre-requisite check',
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    weekdays:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-zh').classList.toggle('active', l==='zh');
+  document.getElementById('btn-en').classList.toggle('active', l==='en');
+  document.documentElement.lang = l==='zh'?'zh':'en';
+  applyLang();
+  renderThisWeek();
+  renderTimeline();
+  renderCalendar();
+  renderUpcoming();
+  renderHolidays();
+  updateProgress();
+}
+
+function applyLang() {
+  const t = T[lang];
+  document.getElementById('h-title').textContent = t.title;
+  document.getElementById('h-sub').textContent = t.sub;
+  document.getElementById('lbl-this-week').textContent = t.thisWeek;
+  document.getElementById('lbl-progress').textContent = t.progress;
+  document.getElementById('lbl-km').textContent = t.km;
+  document.getElementById('lbl-ff').textContent = t.ff;
+  document.getElementById('lbl-timeline').textContent = t.timeline;
+  document.getElementById('lbl-calendar').textContent = t.calendar;
+  document.getElementById('lbl-upcoming').textContent = t.upcoming;
+  document.getElementById('lbl-holidays').textContent = t.holidays;
+  document.getElementById('lg-done').textContent = t.lgDone;
+  document.getElementById('lg-today').textContent = t.lgToday;
+  document.getElementById('lg-km').textContent = t.lgKm;
+  document.getElementById('lg-ff').textContent = t.lgFf;
+  document.getElementById('lg-wf').textContent = t.lgWf;
+  document.getElementById('tab-all').textContent = t.tabAll;
+  document.getElementById('tab-milestone').textContent = t.tabKm;
+  document.getElementById('tab-fundflow').textContent = t.tabFf;
+  document.getElementById('tab-workflow').textContent = t.tabWf;
+  // today badge
+  const d = today;
+  const mName = lang==='zh' ? (d.getMonth()+1)+'月'+d.getDate()+'日' : T.en.months[d.getMonth()]+' '+d.getDate();
+  document.getElementById('today-badge').textContent = (lang==='zh'?'今天：':'Today: ') + mName;
+}
+
+function getAllItems() {
+  return [
+    ...MILESTONES.map(m => ({...m, stream:'milestone'})),
+    ...FUNDFLOWS.map(f => ({...f, stream:'fundflow'})),
+    ...WORKFLOWS.map(w => ({...w, stream:'workflow'}))
+  ];
+}
+
+function getStreamLabel(item) {
+  const t = T[lang];
+  if (item.stream === 'milestone') return t.km;
+  if (item.stream === 'fundflow') return t.ff;
+  return t.lgWf;
+}
+
+function getStreamColor(item) {
+  if (item.stream === 'milestone') return 'var(--milestone-color)';
+  if (item.stream === 'fundflow') return 'var(--fundflow-color)';
+  return 'var(--workflow-color)';
+}
+
+function getWeekBounds(baseDate) {
+  const start = new Date(baseDate);
+  const offset = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - offset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start, end };
+}
+
+function formatShortDate(d) {
+  return lang==='zh'
+    ? `${d.getMonth()+1}月${d.getDate()}日`
+    : `${T.en.months[d.getMonth()].slice(0,3)} ${d.getDate()}`;
+}
+
+function formatWeekRange(start, end) {
+  if (lang === 'zh') {
+    return `${start.getMonth()+1}月${start.getDate()}日 - ${end.getMonth()+1}月${end.getDate()}日`;
+  }
+  return `${T.en.months[start.getMonth()].slice(0,3)} ${start.getDate()} - ${T.en.months[end.getMonth()].slice(0,3)} ${end.getDate()}, ${end.getFullYear()}`;
+}
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────
+function updateProgress() {
+  const mDone = MILESTONES.filter(i=>checked[i.id]).length;
+  const fDone = FUNDFLOWS.filter(i=>checked[i.id]).length;
+  const mPct = Math.round(mDone/MILESTONES.length*100);
+  const fPct = Math.round(fDone/FUNDFLOWS.length*100);
+  document.getElementById('pb-milestone').style.width = mPct+'%';
+  document.getElementById('pb-fundflow').style.width = fPct+'%';
+  const t = T[lang];
+  document.getElementById('pm-done').textContent = mDone+' '+t.done;
+  document.getElementById('pm-total').textContent = MILESTONES.length+' '+t.total;
+  document.getElementById('pf-done').textContent = fDone+' '+t.done;
+  document.getElementById('pf-total').textContent = FUNDFLOWS.length+' '+t.total;
+}
+
+// ─── THIS WEEK ────────────────────────────────────────────────────────
+function renderThisWeek() {
+  const t = T[lang];
+  const { start, end } = getWeekBounds(today);
+  const items = getAllItems()
+    .filter(item => {
+      const d = parseDate(item.date);
+      return d >= start && d <= end;
+    })
+    .sort((a,b) => a.date.localeCompare(b.date) || a.stream.localeCompare(b.stream));
+
+  document.getElementById('week-range').textContent = formatWeekRange(start, end);
+  document.getElementById('week-count').textContent = t.weekCount(items.length);
+
+  const container = document.getElementById('week-list');
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    container.innerHTML = `<div class="week-empty">${t.weekEmpty}</div>`;
+    return;
+  }
+
+  items.forEach(item => {
+    const dateObj = parseDate(item.date);
+    const diff = daysDiff(item.date);
+    const name = lang==='zh' ? item.name_zh : item.name_en;
+    const note = lang==='zh' ? item.note_zh : item.note_en;
+    const isDone = !!checked[item.id];
+    const isToday = item.date === todayStr;
+    const div = document.createElement('div');
+    div.className = 'week-item' + (isToday ? ' today' : '') + (isDone ? ' done' : '');
+    div.innerHTML = `
+      <div class="week-date-box">
+        <div class="week-date-month">${lang==='zh' ? `${dateObj.getMonth()+1}月` : T.en.months[dateObj.getMonth()].slice(0,3)}</div>
+        <div class="week-date-day">${dateObj.getDate()}</div>
+      </div>
+      <div class="week-content">
+        <div class="week-task-name">${name}</div>
+        <div class="week-task-meta">
+          <span class="step-tag ${item.stream}">${getStreamLabel(item)}</span>
+          ${item.bd!==undefined && item.bd!==null ? `<span class="step-tag bd">${t.bd}+${item.bd}</span>` : ''}
+          ${item.offset ? `<span class="step-tag bd">${item.offset}</span>` : ''}
+          ${item.category_zh || item.category_en ? `<span class="step-tag group">${lang==='zh' ? item.category_zh : item.category_en}</span>` : ''}
+          ${item.duration_zh || item.duration_en ? `<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>` : ''}
+          <span style="font-size:0.72rem;color:${diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${formatShortDate(dateObj)} · ${t.daysLeft(diff)}</span>
+          ${item.check ? `<span class="check-badge">⚑ ${t.check}</span>` : ''}
+        </div>
+        ${note ? `<div class="week-task-note">📌 ${note}</div>` : ''}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ─── TIMELINE ─────────────────────────────────────────────────────────
+function filterTimeline(f) {
+  currentFilter = f;
+  ['all','milestone','fundflow','workflow'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', x===f);
+  });
+  renderTimeline();
+}
+
+function renderTimeline() {
+  const t = T[lang];
+  let items = [];
+  if (currentFilter === 'all' || currentFilter === 'milestone') {
+    MILESTONES.forEach(m => items.push({...m, stream:'milestone'}));
+  }
+  if (currentFilter === 'all' || currentFilter === 'fundflow') {
+    FUNDFLOWS.forEach(f => items.push({...f, stream:'fundflow'}));
+  }
+  if (currentFilter === 'all' || currentFilter === 'workflow') {
+    WORKFLOWS.forEach(w => items.push({...w, stream:'workflow'}));
+  }
+  items.sort((a,b)=>a.date.localeCompare(b.date));
+
+  const container = document.getElementById('timeline-list');
+  container.innerHTML = '';
+
+  items.forEach((item, idx) => {
+    const diff = daysDiff(item.date);
+    const isToday = item.date === todayStr;
+    const isDone = !!checked[item.id];
+
+    let iconClass = item.stream==='milestone' ? 'upcoming-milestone' : item.stream==='fundflow' ? 'upcoming-fundflow' : 'upcoming-workflow';
+    if (isDone) iconClass = 'done';
+    else if (isToday) iconClass = 'today';
+
+    const iconContent = isDone ? '✓' : (isToday ? '★' : (idx+1));
+
+    const name = lang==='zh' ? item.name_zh : item.name_en;
+    const note = lang==='zh' ? item.note_zh : item.note_en;
+
+    const dateObj = parseDate(item.date);
+    const dateDisplay = lang==='zh'
+      ? (dateObj.getMonth()+1)+'月'+dateObj.getDate()+'日（'+['日','一','二','三','四','五','六'][dateObj.getDay()]+'）'
+      : T.en.months[dateObj.getMonth()]+' '+dateObj.getDate()+', '+dateObj.getFullYear();
+
+    const daysLabel = t.daysLeft(diff);
+
+    const div = document.createElement('div');
+    div.className = 'timeline-item' + (isToday?' today-item':'');
+    div.innerHTML = `
+      <div class="step-icon ${iconClass}">${iconContent}</div>
+      <div class="step-content">
+        <div class="step-header">
+          <span class="step-name">${name}</span>
+          <span class="step-date">${dateDisplay}</span>
+        </div>
+        <div class="step-meta">
+          <span class="step-tag ${item.stream}">${getStreamLabel(item)}</span>
+          ${item.bd!==undefined && item.bd!==null?`<span class="step-tag bd">${t.bd}+${item.bd}</span>`:''}
+          ${item.offset?`<span class="step-tag bd">${item.offset}</span>`:''}
+          ${item.category_zh || item.category_en?`<span class="step-tag group">${lang==='zh' ? item.category_zh : item.category_en}</span>`:''}
+          ${item.duration_zh || item.duration_en?`<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>`:''}
+          <span style="font-size:0.72rem;color:${diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${daysLabel}</span>
+          ${item.check?`<span class="check-badge">⚑ ${t.check}</span>`:''}
+        </div>
+        ${note?`<div class="step-note">📌 ${note}</div>`:''}
+      </div>
+      <input type="checkbox" class="step-checkbox" ${isDone?'checked':''} onclick="toggleCheck('${item.id}',this)" title="${lang==='zh'?'标记完成':'Mark complete'}">
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleCheck(id, cb) {
+  checked[id] = cb.checked;
+  updateProgress();
+  renderThisWeek();
+  renderTimeline();
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────────────────
+// Build event map
+function buildEventMap() {
+  const map = {};
+  MILESTONES.forEach(m => {
+    if (!map[m.date]) map[m.date] = [];
+    map[m.date].push({...m, stream:'milestone'});
+  });
+  FUNDFLOWS.forEach(f => {
+    if (!map[f.date]) map[f.date] = [];
+    map[f.date].push({...f, stream:'fundflow'});
+  });
+  WORKFLOWS.forEach(w => {
+    if (!map[w.date]) map[w.date] = [];
+    map[w.date].push({...w, stream:'workflow'});
+  });
+  return map;
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const t = T[lang];
+  const eventMap = buildEventMap();
+  const holMap = {};
+  HOLIDAYS.forEach(h => holMap[h.date] = lang==='zh'?h.zh:h.en);
+
+  document.getElementById('cal-month-label').textContent =
+    lang==='zh' ? calYear+'年 '+t.months[calMonth] : t.months[calMonth]+' '+calYear;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Day headers
+  t.weekdays.forEach(w => {
+    const h = document.createElement('div');
+    h.className = 'cal-day-header';
+    h.textContent = w;
+    grid.appendChild(h);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  // Prev month fill
+  for (let i = firstDay-1; i >= 0; i--) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.textContent = daysInPrev - i;
+    grid.appendChild(cell);
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+
+    if (dateStr === todayStr) cell.classList.add('today-cell');
+    if (holMap[dateStr]) cell.classList.add('holiday');
+
+    const dayNum = document.createElement('span');
+    dayNum.textContent = d;
+    cell.appendChild(dayNum);
+
+    const events = eventMap[dateStr] || [];
+    if (events.length > 0) {
+      cell.classList.add('has-event');
+      const dots = document.createElement('div');
+      dots.className = 'cal-dots';
+      const streams = [...new Set(events.map(e=>e.stream))];
+      streams.forEach(s => {
+        const dot = document.createElement('div');
+        dot.className = 'cal-dot '+s;
+        dots.appendChild(dot);
+      });
+      cell.appendChild(dots);
+
+      // Tooltip
+      const tip = document.createElement('div');
+      tip.className = 'cal-tooltip';
+      let tipHtml = '';
+      if (holMap[dateStr]) tipHtml += `🎌 ${holMap[dateStr]}<br>`;
+      events.forEach(e => {
+        const name = lang==='zh' ? e.name_zh : e.name_en;
+        const icon = e.stream==='milestone' ? '🔷' : e.stream==='fundflow' ? '💰' : '🧭';
+        tipHtml += `${icon} ${name}<br>`;
+      });
+      tip.innerHTML = tipHtml;
+      cell.appendChild(tip);
+    } else if (holMap[dateStr]) {
+      const tip = document.createElement('div');
+      tip.className = 'cal-tooltip';
+      tip.innerHTML = `🎌 ${holMap[dateStr]}`;
+      cell.appendChild(tip);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  // Next month fill
+  const totalCells = firstDay + daysInMonth;
+  const remaining = (7 - totalCells % 7) % 7;
+  for (let d = 1; d <= remaining; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.textContent = d;
+    grid.appendChild(cell);
+  }
+}
+
+// ─── UPCOMING ─────────────────────────────────────────────────────────
+function renderUpcoming() {
+  const t = T[lang];
+  const all = getAllItems()
+    .filter(i=>daysDiff(i.date)>=0)
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .slice(0,6);
+
+  const container = document.getElementById('upcoming-list');
+  container.innerHTML = '';
+
+  if (all.length===0) {
+    container.innerHTML = `<div style="color:var(--text-light);font-size:0.85rem;text-align:center;padding:12px;">${lang==='zh'?'所有事项已完成！':'All items completed!'}</div>`;
+    return;
+  }
+
+  all.forEach(item => {
+    const d = parseDate(item.date);
+    const name = lang==='zh' ? item.name_zh : item.name_en;
+    const monthStr = lang==='zh' ? (d.getMonth()+1)+'月' : T.en.months[d.getMonth()].slice(0,3);
+    const diff = daysDiff(item.date);
+    const dLabel = t.daysLeft(diff);
+    const color = getStreamColor(item);
+
+    const div = document.createElement('div');
+    div.className = 'upcoming-item';
+    div.innerHTML = `
+      <div class="upcoming-date-box">
+        <div class="upcoming-month" style="color:${color}">${monthStr}</div>
+        <div class="upcoming-day" style="color:${color}">${d.getDate()}</div>
+      </div>
+      <div class="upcoming-info">
+        <div class="upcoming-name">${name}</div>
+        <div class="upcoming-stream" style="color:${color};font-weight:600;">${getStreamLabel(item)} · ${dLabel}</div>
+      </div>
+      ${item.check?`<span style="font-size:0.75rem;color:var(--fundflow-color);">⚑</span>`:''}
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ─── HOLIDAYS ─────────────────────────────────────────────────────────
+function renderHolidays() {
+  const container = document.getElementById('holiday-list');
+  container.innerHTML = '';
+  HOLIDAYS.forEach(h => {
+    const d = parseDate(h.date);
+    const name = lang==='zh' ? h.zh : h.en;
+    const diff = daysDiff(h.date);
+    const dLabel = T[lang].daysLeft(diff);
+    const dateStr = lang==='zh'
+      ? (d.getMonth()+1)+'月'+d.getDate()+'日'
+      : T.en.months[d.getMonth()]+' '+d.getDate();
+    const div = document.createElement('div');
+    div.className = 'holiday-item';
+    div.innerHTML = `<span>🎌</span><span style="flex:1;font-weight:600;">${name}</span><span style="font-size:0.75rem;">${dateStr} · ${dLabel}</span>`;
+    container.appendChild(div);
+  });
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────
+applyLang();
+updateProgress();
+renderThisWeek();
+renderTimeline();
+renderCalendar();
+renderUpcoming();
+renderHolidays();
+</script>
+</body>
+</html>
