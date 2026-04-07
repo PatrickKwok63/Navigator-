@@ -301,14 +301,14 @@ const MILESTONES = [
 ];
 
 const FUNDFLOWS = [
-  { id: 'f1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', bd: null, note_zh: null, note_en: null, check: false },
+  { id: 'f1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', bd: null, note_zh: null, note_en: null, check: true },
   { id: 'f2', name_zh: 'Lux 资金打出', name_en: 'Lux Funding Wire to Ruifu', date: '2026-04-10', bd: null, note_zh: null, note_en: null, check: false },
   { id: 'f3', name_zh: 'Lux 资金抵达 Ruifu', name_en: 'Lux Funding Arrives at Ruifu', date: '2026-04-13', bd: 1, note_zh: null, note_en: null, check: false },
   { id: 'f4', name_zh: 'Ruifu 资金静置期', name_en: 'Ruifu Funding Mandatory On-hold Period', date: '2026-04-16', bd: 3, note_zh: null, note_en: null, check: false },
   { id: 'f5', name_zh: 'AML 审核通过', name_en: 'AML Greenlight', date: '2026-04-17', bd: 1, note_zh: '前置核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: false },
-  { id: 'f6', name_zh: 'Ruifu USD 转 RMB', name_en: 'Ruifu USD to RMB', date: '2026-04-17', bd: 1, note_zh: '核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: true },
+  { id: 'f6', name_zh: 'Ruifu USD 转 RMB', name_en: 'Ruifu USD to RMB', date: '2026-04-17', bd: 1, note_zh: '核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: false },
   { id: 'f7', name_zh: '发起 Ruifu 向 ABS 缴款', name_en: 'Initiate Capital Injection from Ruifu to ABS', date: '2026-04-20', bd: 1, note_zh: null, note_en: null, check: false },
-  { id: 'f8', name_zh: '完成 ABS 缴款', name_en: 'Complete Capital Injection to ABS', date: '2026-04-21', bd: 1, note_zh: '核查：和外部投资人同一天缴款', note_en: 'Check: On the same day as external investor capital injection', check: true },
+  { id: 'f8', name_zh: '完成 ABS 缴款', name_en: 'Complete Capital Injection to ABS', date: '2026-04-21', bd: 1, note_zh: '核查：和外部投资人同一天缴款', note_en: 'Check: On the same day as external investor capital injection', check: false },
 ];
 
 const WORKFLOWS = [
@@ -328,7 +328,7 @@ const WORKFLOWS = [
 let lang = 'zh';
 let currentFilter = 'all';
 let calYear = 2026, calMonth = 3; // 0-indexed: 3 = April
-const checked = {};
+const checked = Object.fromEntries(getAllItems().map(item => [item.id, !!item.check]));
 const today = new Date();
 today.setHours(0,0,0,0);
 const todayStr = fmtDate(today);
