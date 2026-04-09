@@ -79,8 +79,8 @@
   .week-empty { padding: 16px 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-light); text-align: center; font-size: 0.84rem; background: #fafcff; }
 
   /* Timeline Tabs */
-  .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
-  .tab { padding: 7px 18px; border-radius: 20px; border: 2px solid transparent; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 7px 18px; border-radius: 20px; border: 2px solid transparent; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: white; }
   .tab.milestone { color: var(--milestone-color); border-color: var(--milestone-color); }
   .tab.milestone.active { background: var(--milestone-color); color: white; }
   .tab.fundflow { color: var(--fundflow-color); border-color: var(--fundflow-color); }
@@ -99,6 +99,7 @@
   .timeline-item:hover .step-icon { transform: scale(1.15); }
   .step-icon.done { background: var(--done); color: white; box-shadow: 0 0 0 2px var(--done); }
   .step-icon.today { background: var(--accent); color: white; box-shadow: 0 0 0 2px var(--accent); animation: pulse 2s infinite; }
+  .step-icon.delayed { background: var(--holiday); color: white; box-shadow: 0 0 0 2px var(--holiday); }
   .step-icon.upcoming-milestone { background: var(--milestone-light); color: var(--milestone-color); box-shadow: 0 0 0 2px var(--milestone-color); }
   .step-icon.upcoming-fundflow { background: var(--fundflow-light); color: var(--fundflow-color); box-shadow: 0 0 0 2px var(--fundflow-color); }
   .step-icon.upcoming-workflow { background: var(--workflow-light); color: var(--workflow-color); box-shadow: 0 0 0 2px var(--workflow-color); }
@@ -107,6 +108,7 @@
   .step-content { flex: 1; background: var(--bg); border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border); transition: all 0.2s; }
   .timeline-item:hover .step-content { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #c7d4e8; }
   .timeline-item.today-item .step-content { border-color: var(--accent); background: #fffbf0; }
+  .timeline-item.delayed-item .step-content { border-color: #fca5a5; background: #fff5f5; }
   .step-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .step-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
   .step-date { font-size: 0.78rem; color: var(--text-light); white-space: nowrap; }
@@ -119,6 +121,7 @@
   .step-tag.group { background: #f8fafc; color: #475569; }
   .step-note { font-size: 0.78rem; color: var(--text-light); margin-top: 4px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--border); }
   .check-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7rem; color: var(--fundflow-color); font-weight: 600; }
+  .delayed-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--holiday); font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 10px; }
 
   /* Status checkbox */
   .step-checkbox { appearance: none; width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.2s; }
@@ -142,6 +145,7 @@
   .cal-dot.milestone { background: var(--milestone-color); }
   .cal-dot.fundflow { background: var(--fundflow-color); }
   .cal-dot.workflow { background: var(--workflow-color); }
+  .cal-dot.delayed { background: var(--holiday); }
   .cal-dots { display: flex; gap: 2px; justify-content: center; margin-top: 2px; }
 
   /* Tooltip */
@@ -230,6 +234,7 @@
         <div class="legend-item"><div class="legend-dot" style="background:var(--milestone-color)"></div><span id="lg-km">关键里程碑</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--fundflow-color)"></div><span id="lg-ff">资金流</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--workflow-color)"></div><span id="lg-wf">工作流</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--holiday)"></div><span id="lg-delayed">已延误</span></div>
       </div>
 
       <div class="tab-bar">
@@ -317,6 +322,8 @@ const WORKFLOWS = [
   { id: 'w3', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate mortgage release with Guangfa in advance', date: '2026-04-23', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
   { id: 'w4', name_zh: '签署土地出让合同', name_en: 'Sign land grant contract', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '太仓和昆山完成转让', note_en: 'After Taicang and Kunshan transfers are completed', check: false },
   { id: 'w5', name_zh: '进行奉贤项目公司股权转让', name_en: 'Complete Fengxian project company equity transfer', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '签署土地出让合同', note_en: 'After signing the land grant contract', check: false },
+  { id: 'w5a', name_zh: '待ESR上完会后和ESR及中金确定发行规模', name_en: 'Confirm issuance size with ESR and CICC after ESR FIC', date: '2026-04-10', offset: 'T-8', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: null, note_en: null, check: false },
+  { id: 'w5b', name_zh: '提前 Accrue Rental Guarantee', name_en: 'Advance Accrue Rental Guarantee', date: '2026-04-21', offset: 'T-1', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: 'Ongoing，需要在ABS成立前完成', note_en: 'Ongoing, needs to be completed before ABS set-up', check: false },
   { id: 'w6', name_zh: '和深圳金融局开始沟通减资事宜', name_en: 'Start discussions with Shenzhen Financial Bureau on capital reduction', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: 'IRE 资金安排', category_en: 'IRE Funding', note_zh: null, note_en: null, check: false },
   { id: 'w7', name_zh: '请广发发起解除抵押流程', name_en: 'Ask Guangfa to initiate the mortgage release process', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '收到全部 equity 款项', note_en: 'After receiving all equity proceeds', check: false },
   { id: 'w8', name_zh: '完成市不动产中心数据入库', name_en: 'Complete municipal real estate center data filing', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
@@ -326,7 +333,7 @@ const WORKFLOWS = [
 
 // ─── STATE ─────────────────────────────────────────────────────────────
 let lang = 'zh';
-let currentFilter = 'all';
+let currentFilters = new Set(['milestone','fundflow','workflow']);
 let calYear = 2026, calMonth = 3; // 0-indexed: 3 = April
 const checked = Object.fromEntries(getAllItems().map(item => [item.id, !!item.check]));
 const today = new Date();
@@ -366,6 +373,7 @@ const T = {
     lgKm:'关键里程碑',
     lgFf:'资金流',
     lgWf:'工作流',
+    lgDelayed:'已延误',
     tabAll:'全部',
     tabKm:'关键里程碑',
     tabFf:'资金流',
@@ -374,6 +382,7 @@ const T = {
     duration:'周期',
     today:'今天',
     daysLeft: d => d===0?'今天': d>0?`还有 ${d} 天`:`${-d} 天前`,
+    delayed:'延误',
     check:'核查前置条件',
     months:['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
     weekdays:['日','一','二','三','四','五','六'],
@@ -398,6 +407,7 @@ const T = {
     lgKm:'Key Milestones',
     lgFf:'Fund Flow',
     lgWf:'Workflow',
+    lgDelayed:'Delayed',
     tabAll:'All',
     tabKm:'Key Milestones',
     tabFf:'Fund Flow',
@@ -406,6 +416,7 @@ const T = {
     duration:'Duration',
     today:'Today',
     daysLeft: d => d===0?'Today': d>0?`In ${d} day${d>1?'s':''}`:`${-d} day${-d>1?'s':''} ago`,
+    delayed:'Delayed',
     check:'Pre-requisite check',
     months:['January','February','March','April','May','June','July','August','September','October','November','December'],
     weekdays:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
@@ -443,6 +454,7 @@ function applyLang() {
   document.getElementById('lg-km').textContent = t.lgKm;
   document.getElementById('lg-ff').textContent = t.lgFf;
   document.getElementById('lg-wf').textContent = t.lgWf;
+  document.getElementById('lg-delayed').textContent = t.lgDelayed;
   document.getElementById('tab-all').textContent = t.tabAll;
   document.getElementById('tab-milestone').textContent = t.tabKm;
   document.getElementById('tab-fundflow').textContent = t.tabFf;
@@ -472,6 +484,10 @@ function getStreamColor(item) {
   if (item.stream === 'milestone') return 'var(--milestone-color)';
   if (item.stream === 'fundflow') return 'var(--fundflow-color)';
   return 'var(--workflow-color)';
+}
+
+function isDelayed(item) {
+  return !checked[item.id] && item.date < todayStr;
 }
 
 function getWeekBounds(baseDate) {
@@ -518,9 +534,13 @@ function renderThisWeek() {
   const items = getAllItems()
     .filter(item => {
       const d = parseDate(item.date);
-      return d >= start && d <= end;
+      return (d >= start && d <= end) || isDelayed(item);
     })
-    .sort((a,b) => a.date.localeCompare(b.date) || a.stream.localeCompare(b.stream));
+    .sort((a,b) => {
+      const delayedDiff = Number(isDelayed(b)) - Number(isDelayed(a));
+      if (delayedDiff !== 0) return delayedDiff;
+      return a.date.localeCompare(b.date) || a.stream.localeCompare(b.stream);
+    });
 
   document.getElementById('week-range').textContent = formatWeekRange(start, end);
   document.getElementById('week-count').textContent = t.weekCount(items.length);
@@ -540,8 +560,9 @@ function renderThisWeek() {
     const note = lang==='zh' ? item.note_zh : item.note_en;
     const isDone = !!checked[item.id];
     const isToday = item.date === todayStr;
+    const delayed = isDelayed(item);
     const div = document.createElement('div');
-    div.className = 'week-item' + (isToday ? ' today' : '') + (isDone ? ' done' : '');
+    div.className = 'week-item' + (isToday ? ' today' : '') + (isDone ? ' done' : '') + (delayed ? ' delayed-item' : '');
     div.innerHTML = `
       <div class="week-date-box">
         <div class="week-date-month">${lang==='zh' ? `${dateObj.getMonth()+1}月` : T.en.months[dateObj.getMonth()].slice(0,3)}</div>
@@ -555,7 +576,8 @@ function renderThisWeek() {
           ${item.offset ? `<span class="step-tag bd">${item.offset}</span>` : ''}
           ${item.category_zh || item.category_en ? `<span class="step-tag group">${lang==='zh' ? item.category_zh : item.category_en}</span>` : ''}
           ${item.duration_zh || item.duration_en ? `<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>` : ''}
-          <span style="font-size:0.72rem;color:${diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${formatShortDate(dateObj)} · ${t.daysLeft(diff)}</span>
+          <span style="font-size:0.72rem;color:${delayed?'var(--holiday)':diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${formatShortDate(dateObj)} · ${t.daysLeft(diff)}</span>
+          ${delayed ? `<span class="delayed-badge">⏰ ${t.delayed}</span>` : ''}
           ${item.check ? `<span class="check-badge">⚑ ${t.check}</span>` : ''}
         </div>
         ${note ? `<div class="week-task-note">📌 ${note}</div>` : ''}
@@ -567,9 +589,17 @@ function renderThisWeek() {
 
 // ─── TIMELINE ─────────────────────────────────────────────────────────
 function filterTimeline(f) {
-  currentFilter = f;
-  ['all','milestone','fundflow','workflow'].forEach(x => {
-    document.getElementById('tab-'+x).classList.toggle('active', x===f);
+  if (f === 'all') {
+    const allSelected = currentFilters.size === 3;
+    currentFilters = allSelected ? new Set() : new Set(['milestone','fundflow','workflow']);
+  } else {
+    if (currentFilters.has(f)) currentFilters.delete(f);
+    else currentFilters.add(f);
+  }
+
+  document.getElementById('tab-all').classList.toggle('active', currentFilters.size === 3);
+  ['milestone','fundflow','workflow'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', currentFilters.has(x));
   });
   renderTimeline();
 }
@@ -577,13 +607,13 @@ function filterTimeline(f) {
 function renderTimeline() {
   const t = T[lang];
   let items = [];
-  if (currentFilter === 'all' || currentFilter === 'milestone') {
+  if (currentFilters.has('milestone')) {
     MILESTONES.forEach(m => items.push({...m, stream:'milestone'}));
   }
-  if (currentFilter === 'all' || currentFilter === 'fundflow') {
+  if (currentFilters.has('fundflow')) {
     FUNDFLOWS.forEach(f => items.push({...f, stream:'fundflow'}));
   }
-  if (currentFilter === 'all' || currentFilter === 'workflow') {
+  if (currentFilters.has('workflow')) {
     WORKFLOWS.forEach(w => items.push({...w, stream:'workflow'}));
   }
   items.sort((a,b)=>a.date.localeCompare(b.date));
@@ -595,12 +625,14 @@ function renderTimeline() {
     const diff = daysDiff(item.date);
     const isToday = item.date === todayStr;
     const isDone = !!checked[item.id];
+    const delayed = isDelayed(item);
 
     let iconClass = item.stream==='milestone' ? 'upcoming-milestone' : item.stream==='fundflow' ? 'upcoming-fundflow' : 'upcoming-workflow';
     if (isDone) iconClass = 'done';
+    else if (delayed) iconClass = 'delayed';
     else if (isToday) iconClass = 'today';
 
-    const iconContent = isDone ? '✓' : (isToday ? '★' : (idx+1));
+    const iconContent = isDone ? '✓' : (delayed ? '!' : (isToday ? '★' : (idx+1)));
 
     const name = lang==='zh' ? item.name_zh : item.name_en;
     const note = lang==='zh' ? item.note_zh : item.note_en;
@@ -613,7 +645,7 @@ function renderTimeline() {
     const daysLabel = t.daysLeft(diff);
 
     const div = document.createElement('div');
-    div.className = 'timeline-item' + (isToday?' today-item':'');
+    div.className = 'timeline-item' + (isToday?' today-item':'') + (delayed ? ' delayed-item' : '');
     div.innerHTML = `
       <div class="step-icon ${iconClass}">${iconContent}</div>
       <div class="step-content">
@@ -627,7 +659,8 @@ function renderTimeline() {
           ${item.offset?`<span class="step-tag bd">${item.offset}</span>`:''}
           ${item.category_zh || item.category_en?`<span class="step-tag group">${lang==='zh' ? item.category_zh : item.category_en}</span>`:''}
           ${item.duration_zh || item.duration_en?`<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>`:''}
-          <span style="font-size:0.72rem;color:${diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${daysLabel}</span>
+          <span style="font-size:0.72rem;color:${delayed?'var(--holiday)':diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${daysLabel}</span>
+          ${delayed?`<span class="delayed-badge">⏰ ${t.delayed}</span>`:''}
           ${item.check?`<span class="check-badge">⚑ ${t.check}</span>`:''}
         </div>
         ${note?`<div class="step-note">📌 ${note}</div>`:''}
@@ -727,6 +760,11 @@ function renderCalendar() {
         dot.className = 'cal-dot '+s;
         dots.appendChild(dot);
       });
+      if (events.some(e => isDelayed(e))) {
+        const delayedDot = document.createElement('div');
+        delayedDot.className = 'cal-dot delayed';
+        dots.appendChild(delayedDot);
+      }
       cell.appendChild(dots);
 
       // Tooltip
@@ -736,8 +774,8 @@ function renderCalendar() {
       if (holMap[dateStr]) tipHtml += `🎌 ${holMap[dateStr]}<br>`;
       events.forEach(e => {
         const name = lang==='zh' ? e.name_zh : e.name_en;
-        const icon = e.stream==='milestone' ? '🔷' : e.stream==='fundflow' ? '💰' : '🧭';
-        tipHtml += `${icon} ${name}<br>`;
+        const icon = isDelayed(e) ? '⏰' : (e.stream==='milestone' ? '🔷' : e.stream==='fundflow' ? '💰' : '🧭');
+        tipHtml += `${icon} ${name}${isDelayed(e) ? ` (${t.delayed})` : ''}<br>`;
       });
       tip.innerHTML = tipHtml;
       cell.appendChild(tip);
