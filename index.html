@@ -173,6 +173,14 @@
 
   .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
+
+  /* View Switch */
+  .view-switch-wrap { max-width: 1400px; margin: 18px auto 0; padding: 0 20px; }
+  .view-switch { display: inline-flex; gap: 8px; background: var(--card); border-radius: 16px; padding: 6px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); border: 1px solid var(--border); }
+  .view-btn { border: none; background: transparent; color: var(--primary); padding: 10px 16px; border-radius: 12px; cursor: pointer; font-size: 0.88rem; font-weight: 700; transition: all 0.2s; }
+  .view-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; box-shadow: 0 4px 12px rgba(26,47,94,0.18); }
+  .view-btn:hover:not(.active) { background: #eef3fc; }
+
   /* Hidden */
   .hidden { display: none !important; }
 </style>
@@ -190,6 +198,14 @@
       <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
       <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
     </div>
+  </div>
+
+</div>
+
+<div class="view-switch-wrap">
+  <div class="view-switch">
+    <button class="view-btn active" onclick="setTimelineView('target')" id="view-target">目标时间表</button>
+    <button class="view-btn" onclick="setTimelineView('delayed')" id="view-delayed">顺延时间表</button>
   </div>
 </div>
 
@@ -233,7 +249,7 @@
         <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span id="lg-today">今天</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--milestone-color)"></div><span id="lg-km">关键里程碑</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--fundflow-color)"></div><span id="lg-ff">资金流</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--workflow-color)"></div><span id="lg-wf">工作流</span></div>
+        <div class="legend-item" id="legend-workflow"><div class="legend-dot" style="background:var(--workflow-color)"></div><span id="lg-wf">工作流</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--holiday)"></div><span id="lg-delayed">已延误</span></div>
       </div>
 
@@ -289,7 +305,7 @@ const HOLIDAYS = [
   { date: '2026-05-05', zh: '劳动节假期', en: 'Labour Day Holiday' },
 ];
 
-const MILESTONES = [
+const TARGET_MILESTONES = [
   { id: 'm1', name_zh: '中金流程', name_en: 'CICC Internal Process', date: '2026-04-03', bd: 0, note_zh: null, note_en: null, check: false },
   { id: 'm2', name_zh: '文件定稿', name_en: 'Docs Finalized', date: '2026-04-02', bd: 0, note_zh: '待定：SPA、OMA', note_en: 'Pending: SPA, OMA', check: true },
   { id: 'm3', name_zh: '递交封卷材料', name_en: 'Submit Finalized Docs', date: '2026-04-07', bd: 1, note_zh: null, note_en: null, check: false },
@@ -304,8 +320,7 @@ const MILESTONES = [
   { id: 'm12', name_zh: '投资人完成缴款', name_en: 'Investors Complete Capital Injection to ABS', date: '2026-04-21', bd: 2, note_zh: null, note_en: null, check: false },
   { id: 'm13', name_zh: 'ABS 发行', name_en: 'ABS Set Up', date: '2026-04-22', bd: 1, note_zh: null, note_en: null, check: false },
 ];
-
-const FUNDFLOWS = [
+const TARGET_FUNDFLOWS = [
   { id: 'f1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', bd: null, note_zh: null, note_en: null, check: true },
   { id: 'f2', name_zh: 'Lux 资金打出', name_en: 'Lux Funding Wire to Ruifu', date: '2026-04-10', bd: null, note_zh: null, note_en: null, check: false },
   { id: 'f3', name_zh: 'Lux 资金抵达 Ruifu', name_en: 'Lux Funding Arrives at Ruifu', date: '2026-04-13', bd: 1, note_zh: null, note_en: null, check: false },
@@ -315,8 +330,7 @@ const FUNDFLOWS = [
   { id: 'f7', name_zh: '发起 Ruifu 向 ABS 缴款', name_en: 'Initiate Capital Injection from Ruifu to ABS', date: '2026-04-20', bd: 1, note_zh: null, note_en: null, check: false },
   { id: 'f8', name_zh: '完成 ABS 缴款', name_en: 'Complete Capital Injection to ABS', date: '2026-04-21', bd: 1, note_zh: '核查：和外部投资人同一天缴款', note_en: 'Check: On the same day as external investor capital injection', check: false },
 ];
-
-const WORKFLOWS = [
+const TARGET_WORKFLOWS = [
   { id: 'w1', name_zh: '和奉贤规自局沟通签约', name_en: 'Coordinate signing with Fengxian Planning and Natural Resources Bureau', date: '2026-04-14', offset: 'T-6', duration_zh: '当日', duration_en: 'Same day', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: null, note_en: null, check: false },
   { id: 'w2', name_zh: '签订土地出让合同时间', name_en: 'Execute land grant contract', date: '2026-04-21', offset: 'T-1', duration_zh: '一周', duration_en: '1 week', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '交易确定性高后，ABS设立日（即为交割日）前', note_en: 'After transaction certainty is high and before ABS set-up date, which is the closing date', check: false },
   { id: 'w3', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate mortgage release with Guangfa in advance', date: '2026-04-23', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
@@ -331,11 +345,277 @@ const WORKFLOWS = [
   { id: 'w10', name_zh: '景顺到不动产中心办理两证合一', name_en: 'Invesco completes the two-certificates consolidation at the real estate center', date: '2026-06-08', offset: 'T+30', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '解除抵押，必须在 08/18/2026 资金外转之前完成', note_en: 'Mortgage must be released before the outbound remittance on 08/18/2026', check: false },
 ];
 
+const DELAYED_MILESTONES = [
+  {
+    "id": "dm1",
+    "name_zh": "中金流程",
+    "name_en": "CICC Internal Process",
+    "date": "2026-04-09",
+    "bd": 0,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm2",
+    "name_zh": "文件定稿",
+    "name_en": "Docs Finalized",
+    "date": "2026-04-08",
+    "bd": 0,
+    "note_zh": "待定：SPA、OMA",
+    "note_en": "Pending：SPA、OMA",
+    "check": false
+  },
+  {
+    "id": "dm3",
+    "name_zh": "递交封卷材料",
+    "name_en": "Submit Finalized Docs",
+    "date": "2026-04-10",
+    "bd": 1,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm4",
+    "name_zh": "无异议函",
+    "name_en": "SHEx No-objection Letter",
+    "date": "2026-04-14",
+    "bd": 2,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm5",
+    "name_zh": "ESR 上会",
+    "name_en": "ESR FIC",
+    "date": "2026-04-09",
+    "bd": 0,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm6",
+    "name_zh": "文件传签完成",
+    "name_en": "Docs Signed Off",
+    "date": "2026-04-15",
+    "bd": 1,
+    "note_zh": "签署方：ESR、China Life、CICC、Guangfa Bank、IRE",
+    "note_en": "Signinng Parties：ESR、China Life、CICC、Guangfa Bank、IRE",
+    "check": false
+  },
+  {
+    "id": "dm7",
+    "name_zh": "提交发行前备案",
+    "name_en": "Submit Pre-Issuance Filings",
+    "date": "2026-04-15",
+    "bd": 0,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm8",
+    "name_zh": "发行前备案通过 / 提交发行公告",
+    "name_en": "Pre-issuance filing approved / Submit issuance announcement",
+    "date": "2026-04-17",
+    "bd": 2,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm9",
+    "name_zh": "簿记 / 协议定价日 /发行结果公告",
+    "name_en": "Bookbuilding / Announcement of Issuance Results",
+    "date": "2026-04-21",
+    "bd": 2,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm10",
+    "name_zh": "缴款通知书",
+    "name_en": "Payment Notice / Subscription Allocation Notification",
+    "date": "2026-04-22",
+    "bd": 1,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm11",
+    "name_zh": "Subscription Signing",
+    "name_en": "Subscription Signing",
+    "date": "2026-04-22",
+    "bd": 0,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm12",
+    "name_zh": "投资人完成缴款",
+    "name_en": "Investors Completes Capital Injection to ABS",
+    "date": "2026-04-24",
+    "bd": 2,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "dm13",
+    "name_zh": "ABS 发行",
+    "name_en": "ABS Set up",
+    "date": "2026-04-27",
+    "bd": 1,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  }
+];
+const DELAYED_FUNDFLOWS = [
+  {
+    "id": "df1",
+    "name_zh": "Lux 资金到位",
+    "name_en": "Lux Funding Ready",
+    "date": "2026-04-02",
+    "bd": null,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "df2",
+    "name_zh": "Lux 资金打出",
+    "name_en": "Lux Funding Wire to Ruifu",
+    "date": "2026-04-10",
+    "bd": null,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "df3",
+    "name_zh": "Lux 资金抵达 Ruifu",
+    "name_en": "Lux Funding Arrives at Ruifu",
+    "date": "2026-04-13",
+    "bd": 1,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "df4",
+    "name_zh": "Ruifu 资金静置期",
+    "name_en": "Ruifu Funding Mandatory On-hold Period",
+    "date": "2026-04-16",
+    "bd": 3,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "df5",
+    "name_zh": "AML Greenlight",
+    "name_en": "AML Greenlight",
+    "date": "2026-04-17",
+    "bd": 1,
+    "note_zh": "Check: Aftre Payment Notice",
+    "note_en": "Check: Aftre Payment Notice",
+    "check": false
+  },
+  {
+    "id": "df6",
+    "name_zh": "Ruifu USD 转 RMB",
+    "name_en": "Ruifu USD to RMB",
+    "date": "2026-04-17",
+    "bd": 1,
+    "note_zh": "Check：缴款通知书之后",
+    "note_en": "Check：After Payment Notice",
+    "check": false
+  },
+  {
+    "id": "df7",
+    "name_zh": "Initiate Capital Injection from Ruifu to ABS",
+    "name_en": "Initiate Capital Injection from Ruifu to ABS",
+    "date": "2026-04-20",
+    "bd": 1,
+    "note_zh": null,
+    "note_en": null,
+    "check": false
+  },
+  {
+    "id": "df8",
+    "name_zh": "完成 ABS 缴款",
+    "name_en": "Complete capital Injection to ABS",
+    "date": "2026-04-21",
+    "bd": 1,
+    "note_zh": "Check：和外部投资人同一天缴款",
+    "note_en": "Check：On the same day as external investor capital injection",
+    "check": false
+  }
+];
+const DELAYED_WORKFLOWS = [];
+
+const TIMELINE_VIEWS = {
+  target: {
+    key: 'target',
+    milestones: TARGET_MILESTONES,
+    fundflows: TARGET_FUNDFLOWS,
+    workflows: TARGET_WORKFLOWS,
+  },
+  delayed: {
+    key: 'delayed',
+    milestones: DELAYED_MILESTONES,
+    fundflows: DELAYED_FUNDFLOWS,
+    workflows: DELAYED_WORKFLOWS,
+  }
+};
+
 // ─── STATE ─────────────────────────────────────────────────────────────
 let lang = 'zh';
+let activeTimelineView = 'target';
 let currentFilters = new Set(['milestone','fundflow','workflow']);
 let calYear = 2026, calMonth = 3; // 0-indexed: 3 = April
-const checked = Object.fromEntries(getAllItems().map(item => [item.id, !!item.check]));
+const ITEM_INDEX = Object.fromEntries(Object.values(TIMELINE_VIEWS).flatMap(view => getItemsForView(view).map(item => [item.id, item])));
+
+function normalizeTaskName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[\s·•]+/g, '')
+    .replace(/[：:]/g, '')
+    .replace(/[()（）/\-]/g, '')
+    .replace(/[，,]/g, '')
+    .trim();
+}
+
+function getSharedTaskKey(item) {
+  const baseName = item.name_en || item.name_zh || item.id;
+  return `${item.stream}::${normalizeTaskName(baseName)}`;
+}
+
+const sharedChecked = {};
+Object.values(TIMELINE_VIEWS).forEach(view => {
+  getItemsForView(view).forEach(item => {
+    const key = getSharedTaskKey(item);
+    sharedChecked[key] = sharedChecked[key] || !!item.check;
+  });
+});
+
+function isChecked(item) {
+  return !!sharedChecked[getSharedTaskKey(item)];
+}
+
+function setCheckedById(id, value) {
+  const item = ITEM_INDEX[id];
+  if (!item) return;
+  sharedChecked[getSharedTaskKey(item)] = !!value;
+}
+
 const today = new Date();
 today.setHours(0,0,0,0);
 const todayStr = fmtDate(today);
@@ -365,6 +645,10 @@ const T = {
     done:'已完成',
     total:'共',
     timeline:'交易时间表',
+    timelineTarget:'Target Timeline',
+    timelineDelayed:'顺延时间表',
+    viewTarget:'目标时间表',
+    viewDelayed:'顺延时间表',
     calendar:'日历视图',
     upcoming:'即将到来',
     holidays:'节假日提示',
@@ -374,6 +658,7 @@ const T = {
     lgFf:'资金流',
     lgWf:'工作流',
     lgDelayed:'已延误',
+    delayed:'延误',
     tabAll:'全部',
     tabKm:'关键里程碑',
     tabFf:'资金流',
@@ -382,7 +667,6 @@ const T = {
     duration:'周期',
     today:'今天',
     daysLeft: d => d===0?'今天': d>0?`还有 ${d} 天`:`${-d} 天前`,
-    delayed:'延误',
     check:'核查前置条件',
     months:['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
     weekdays:['日','一','二','三','四','五','六'],
@@ -399,6 +683,10 @@ const T = {
     done:'Done',
     total:'Total',
     timeline:'Transaction Timeline',
+    timelineTarget:'Target Timeline',
+    timelineDelayed:'Delayed Timeline',
+    viewTarget:'Target Timeline',
+    viewDelayed:'顺延时间表 / Delayed Timeline',
     calendar:'Calendar View',
     upcoming:'Upcoming Events',
     holidays:'Holiday Alerts',
@@ -408,6 +696,7 @@ const T = {
     lgFf:'Fund Flow',
     lgWf:'Workflow',
     lgDelayed:'Delayed',
+    delayed:'Delayed',
     tabAll:'All',
     tabKm:'Key Milestones',
     tabFf:'Fund Flow',
@@ -416,12 +705,52 @@ const T = {
     duration:'Duration',
     today:'Today',
     daysLeft: d => d===0?'Today': d>0?`In ${d} day${d>1?'s':''}`:`${-d} day${-d>1?'s':''} ago`,
-    delayed:'Delayed',
     check:'Pre-requisite check',
     months:['January','February','March','April','May','June','July','August','September','October','November','December'],
     weekdays:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
   }
 };
+
+
+function setTimelineView(viewKey) {
+  activeTimelineView = viewKey;
+  document.getElementById('view-target').classList.toggle('active', viewKey === 'target');
+  document.getElementById('view-delayed').classList.toggle('active', viewKey === 'delayed');
+
+  const availableStreams = getAvailableStreams();
+  currentFilters = new Set(availableStreams);
+  if (!availableStreams.includes('workflow')) {
+    document.getElementById('tab-workflow').classList.add('hidden');
+    document.getElementById('legend-workflow').classList.add('hidden');
+  } else {
+    document.getElementById('tab-workflow').classList.remove('hidden');
+    document.getElementById('legend-workflow').classList.remove('hidden');
+  }
+
+  applyLang();
+  updateFilterButtons();
+  updateProgress();
+  renderThisWeek();
+  renderTimeline();
+  renderCalendar();
+  renderUpcoming();
+  renderHolidays();
+}
+
+function updateFilterButtons() {
+  const availableStreams = getAvailableStreams();
+  const allSelected = availableStreams.length > 0 && availableStreams.every(x => currentFilters.has(x));
+  document.getElementById('tab-all').classList.toggle('active', allSelected);
+
+  ['milestone','fundflow','workflow'].forEach(x => {
+    const btn = document.getElementById('tab-'+x);
+    const available = availableStreams.includes(x);
+    btn.classList.toggle('active', available && currentFilters.has(x));
+    btn.disabled = !available;
+    btn.style.opacity = available ? '1' : '0.45';
+    btn.style.pointerEvents = available ? 'auto' : 'none';
+  });
+}
 
 function setLang(l) {
   lang = l;
@@ -445,7 +774,7 @@ function applyLang() {
   document.getElementById('lbl-progress').textContent = t.progress;
   document.getElementById('lbl-km').textContent = t.km;
   document.getElementById('lbl-ff').textContent = t.ff;
-  document.getElementById('lbl-timeline').textContent = t.timeline;
+  document.getElementById('lbl-timeline').textContent = activeTimelineView === 'target' ? t.timelineTarget : t.timelineDelayed;
   document.getElementById('lbl-calendar').textContent = t.calendar;
   document.getElementById('lbl-upcoming').textContent = t.upcoming;
   document.getElementById('lbl-holidays').textContent = t.holidays;
@@ -459,18 +788,38 @@ function applyLang() {
   document.getElementById('tab-milestone').textContent = t.tabKm;
   document.getElementById('tab-fundflow').textContent = t.tabFf;
   document.getElementById('tab-workflow').textContent = t.tabWf;
+  document.getElementById('view-target').textContent = t.viewTarget;
+  document.getElementById('view-delayed').textContent = t.viewDelayed;
   // today badge
   const d = today;
   const mName = lang==='zh' ? (d.getMonth()+1)+'月'+d.getDate()+'日' : T.en.months[d.getMonth()]+' '+d.getDate();
   document.getElementById('today-badge').textContent = (lang==='zh'?'今天：':'Today: ') + mName;
 }
 
-function getAllItems() {
+
+function getActiveView() {
+  return TIMELINE_VIEWS[activeTimelineView];
+}
+
+function getItemsForView(view) {
   return [
-    ...MILESTONES.map(m => ({...m, stream:'milestone'})),
-    ...FUNDFLOWS.map(f => ({...f, stream:'fundflow'})),
-    ...WORKFLOWS.map(w => ({...w, stream:'workflow'}))
+    ...view.milestones.map(m => ({...m, stream:'milestone'})),
+    ...view.fundflows.map(f => ({...f, stream:'fundflow'})),
+    ...view.workflows.map(w => ({...w, stream:'workflow'}))
   ];
+}
+
+function getAvailableStreams() {
+  const view = getActiveView();
+  const streams = [];
+  if (view.milestones.length) streams.push('milestone');
+  if (view.fundflows.length) streams.push('fundflow');
+  if (view.workflows.length) streams.push('workflow');
+  return streams;
+}
+
+function getAllItems() {
+  return getItemsForView(getActiveView());
 }
 
 function getStreamLabel(item) {
@@ -487,7 +836,7 @@ function getStreamColor(item) {
 }
 
 function isDelayed(item) {
-  return !checked[item.id] && item.date < todayStr;
+  return !isChecked(item) && item.date < todayStr;
 }
 
 function getWeekBounds(baseDate) {
@@ -514,17 +863,18 @@ function formatWeekRange(start, end) {
 
 // ─── PROGRESS ─────────────────────────────────────────────────────────
 function updateProgress() {
-  const mDone = MILESTONES.filter(i=>checked[i.id]).length;
-  const fDone = FUNDFLOWS.filter(i=>checked[i.id]).length;
-  const mPct = Math.round(mDone/MILESTONES.length*100);
-  const fPct = Math.round(fDone/FUNDFLOWS.length*100);
+  const view = getActiveView();
+  const mDone = view.milestones.filter(i=>isChecked(i)).length;
+  const fDone = view.fundflows.filter(i=>isChecked(i)).length;
+  const mPct = view.milestones.length ? Math.round(mDone/view.milestones.length*100) : 0;
+  const fPct = view.fundflows.length ? Math.round(fDone/view.fundflows.length*100) : 0;
   document.getElementById('pb-milestone').style.width = mPct+'%';
   document.getElementById('pb-fundflow').style.width = fPct+'%';
   const t = T[lang];
   document.getElementById('pm-done').textContent = mDone+' '+t.done;
-  document.getElementById('pm-total').textContent = MILESTONES.length+' '+t.total;
+  document.getElementById('pm-total').textContent = view.milestones.length+' '+t.total;
   document.getElementById('pf-done').textContent = fDone+' '+t.done;
-  document.getElementById('pf-total').textContent = FUNDFLOWS.length+' '+t.total;
+  document.getElementById('pf-total').textContent = view.fundflows.length+' '+t.total;
 }
 
 // ─── THIS WEEK ────────────────────────────────────────────────────────
@@ -534,13 +884,9 @@ function renderThisWeek() {
   const items = getAllItems()
     .filter(item => {
       const d = parseDate(item.date);
-      return (d >= start && d <= end) || isDelayed(item);
+      return isDelayed(item) || (d >= start && d <= end);
     })
-    .sort((a,b) => {
-      const delayedDiff = Number(isDelayed(b)) - Number(isDelayed(a));
-      if (delayedDiff !== 0) return delayedDiff;
-      return a.date.localeCompare(b.date) || a.stream.localeCompare(b.stream);
-    });
+    .sort((a,b) => a.date.localeCompare(b.date) || a.stream.localeCompare(b.stream));
 
   document.getElementById('week-range').textContent = formatWeekRange(start, end);
   document.getElementById('week-count').textContent = t.weekCount(items.length);
@@ -558,7 +904,7 @@ function renderThisWeek() {
     const diff = daysDiff(item.date);
     const name = lang==='zh' ? item.name_zh : item.name_en;
     const note = lang==='zh' ? item.note_zh : item.note_en;
-    const isDone = !!checked[item.id];
+    const isDone = isChecked(item);
     const isToday = item.date === todayStr;
     const delayed = isDelayed(item);
     const div = document.createElement('div');
@@ -606,25 +952,31 @@ function filterTimeline(f) {
 
 function renderTimeline() {
   const t = T[lang];
+  const view = getActiveView();
   let items = [];
   if (currentFilters.has('milestone')) {
-    MILESTONES.forEach(m => items.push({...m, stream:'milestone'}));
+    view.milestones.forEach(m => items.push({...m, stream:'milestone'}));
   }
   if (currentFilters.has('fundflow')) {
-    FUNDFLOWS.forEach(f => items.push({...f, stream:'fundflow'}));
+    view.fundflows.forEach(f => items.push({...f, stream:'fundflow'}));
   }
   if (currentFilters.has('workflow')) {
-    WORKFLOWS.forEach(w => items.push({...w, stream:'workflow'}));
+    view.workflows.forEach(w => items.push({...w, stream:'workflow'}));
   }
   items.sort((a,b)=>a.date.localeCompare(b.date));
 
   const container = document.getElementById('timeline-list');
   container.innerHTML = '';
 
+  if (items.length === 0) {
+    container.innerHTML = `<div class="week-empty">${lang==='zh'?'请选择至少一个分类':'Select at least one category'}</div>`;
+    return;
+  }
+
   items.forEach((item, idx) => {
     const diff = daysDiff(item.date);
     const isToday = item.date === todayStr;
-    const isDone = !!checked[item.id];
+    const isDone = isChecked(item);
     const delayed = isDelayed(item);
 
     let iconClass = item.stream==='milestone' ? 'upcoming-milestone' : item.stream==='fundflow' ? 'upcoming-fundflow' : 'upcoming-workflow';
@@ -672,7 +1024,7 @@ function renderTimeline() {
 }
 
 function toggleCheck(id, cb) {
-  checked[id] = cb.checked;
+  setCheckedById(id, cb.checked);
   updateProgress();
   renderThisWeek();
   renderTimeline();
@@ -682,17 +1034,9 @@ function toggleCheck(id, cb) {
 // Build event map
 function buildEventMap() {
   const map = {};
-  MILESTONES.forEach(m => {
-    if (!map[m.date]) map[m.date] = [];
-    map[m.date].push({...m, stream:'milestone'});
-  });
-  FUNDFLOWS.forEach(f => {
-    if (!map[f.date]) map[f.date] = [];
-    map[f.date].push({...f, stream:'fundflow'});
-  });
-  WORKFLOWS.forEach(w => {
-    if (!map[w.date]) map[w.date] = [];
-    map[w.date].push({...w, stream:'workflow'});
+  getAllItems().forEach(item => {
+    if (!map[item.date]) map[item.date] = [];
+    map[item.date].push(item);
   });
   return map;
 }
@@ -861,13 +1205,7 @@ function renderHolidays() {
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────
-applyLang();
-updateProgress();
-renderThisWeek();
-renderTimeline();
-renderCalendar();
-renderUpcoming();
-renderHolidays();
+setTimelineView('target');
 </script>
 </body>
 </html>
