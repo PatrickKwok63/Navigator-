@@ -223,23 +223,6 @@
       <div class="week-list" id="week-list"></div>
     </div>
 
-    <!-- Progress Summary -->
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--primary)"></span><span id="lbl-progress">整体进度</span></div>
-      <div class="progress-grid">
-        <div class="progress-box milestone">
-          <h3 class="milestone" id="lbl-km">关键里程碑</h3>
-          <div class="progress-bar-wrap"><div class="progress-bar milestone" id="pb-milestone" style="width:0%"></div></div>
-          <div class="progress-meta"><span id="pm-done">0 已完成</span><span id="pm-total">0 共</span></div>
-        </div>
-        <div class="progress-box fundflow">
-          <h3 class="fundflow" id="lbl-ff">资金流</h3>
-          <div class="progress-bar-wrap"><div class="progress-bar fundflow" id="pb-fundflow" style="width:0%"></div></div>
-          <div class="progress-meta"><span id="pf-done">0 已完成</span><span id="pf-total">0 共</span></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Timeline -->
     <div class="card">
       <div class="card-title"><span class="dot" style="background:var(--secondary)"></span><span id="lbl-timeline">交易时间表</span></div>
@@ -306,11 +289,11 @@ const HOLIDAYS = [
 ];
 
 const TARGET_MILESTONES = [
-  { id: 'm1', name_zh: '中金流程', name_en: 'CICC Internal Process', date: '2026-04-03', bd: 0, note_zh: null, note_en: null, check: false },
+  { id: 'm1', name_zh: '中金流程', name_en: 'CICC Internal Process', date: '2026-04-03', bd: 0, note_zh: null, note_en: null, check: true },
   { id: 'm2', name_zh: '文件定稿', name_en: 'Docs Finalized', date: '2026-04-02', bd: 0, note_zh: '待定：SPA、OMA', note_en: 'Pending: SPA, OMA', check: true },
-  { id: 'm3', name_zh: '递交封卷材料', name_en: 'Submit Finalized Docs', date: '2026-04-07', bd: 1, note_zh: null, note_en: null, check: false },
+  { id: 'm3', name_zh: '递交封卷材料', name_en: 'Submit Finalized Docs', date: '2026-04-07', bd: 1, note_zh: null, note_en: null, check: true },
   { id: 'm4', name_zh: '无异议函', name_en: 'SHEx No-objection Letter', date: '2026-04-09', bd: 2, note_zh: null, note_en: null, check: false },
-  { id: 'm5', name_zh: 'ESR 上会', name_en: 'ESR FIC', date: '2026-04-09', bd: 0, note_zh: null, note_en: null, check: false },
+  { id: 'm5', name_zh: 'ESR 上会', name_en: 'ESR FIC', date: '2026-04-09', bd: 0, note_zh: null, note_en: null, check: true },
   { id: 'm6', name_zh: '文件传签完成', name_en: 'Docs Signed Off', date: '2026-04-10', bd: 1, note_zh: '签署方：ESR、China Life、CICC、Guangfa Bank、IRE', note_en: 'Signing Parties: ESR, China Life, CICC, Guangfa Bank, IRE', check: false },
   { id: 'm7', name_zh: '提交发行前备案', name_en: 'Submit Pre-Issuance Filings', date: '2026-04-10', bd: 0, note_zh: null, note_en: null, check: false },
   { id: 'm8', name_zh: '发行前备案通过 / 提交发行公告', name_en: 'Pre-Issuance Filing Approved / Submit Issuance Announcement', date: '2026-04-14', bd: 2, note_zh: null, note_en: null, check: false },
@@ -336,7 +319,7 @@ const TARGET_WORKFLOWS = [
   { id: 'w3', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate mortgage release with Guangfa in advance', date: '2026-04-23', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
   { id: 'w4', name_zh: '签署土地出让合同', name_en: 'Sign land grant contract', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '太仓和昆山完成转让', note_en: 'After Taicang and Kunshan transfers are completed', check: false },
   { id: 'w5', name_zh: '进行奉贤项目公司股权转让', name_en: 'Complete Fengxian project company equity transfer', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '签署土地出让合同', note_en: 'After signing the land grant contract', check: false },
-  { id: 'w5a', name_zh: '待ESR上完会后和ESR及中金确定发行规模', name_en: 'Confirm issuance size with ESR and CICC after ESR FIC', date: '2026-04-10', offset: 'T-8', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: null, note_en: null, check: false },
+  { id: 'w5a', name_zh: '待ESR上完会后和ESR及中金确定发行规模', name_en: 'Confirm issuance size with ESR and CICC after ESR FIC', date: '2026-04-10', offset: 'T-8', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: null, note_en: null, check: true },
   { id: 'w5b', name_zh: '提前 Accrue Rental Guarantee', name_en: 'Advance Accrue Rental Guarantee', date: '2026-04-21', offset: 'T-1', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: 'Ongoing，需要在ABS成立前完成', note_en: 'Ongoing, needs to be completed before ABS set-up', check: false },
   { id: 'w6', name_zh: '和深圳金融局开始沟通减资事宜', name_en: 'Start discussions with Shenzhen Financial Bureau on capital reduction', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: 'IRE 资金安排', category_en: 'IRE Funding', note_zh: null, note_en: null, check: false },
   { id: 'w7', name_zh: '请广发发起解除抵押流程', name_en: 'Ask Guangfa to initiate the mortgage release process', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '收到全部 equity 款项', note_en: 'After receiving all equity proceeds', check: false },
@@ -729,7 +712,7 @@ function setTimelineView(viewKey) {
 
   applyLang();
   updateFilterButtons();
-  updateProgress();
+
   renderThisWeek();
   renderTimeline();
   renderCalendar();
@@ -763,7 +746,7 @@ function setLang(l) {
   renderCalendar();
   renderUpcoming();
   renderHolidays();
-  updateProgress();
+
 }
 
 function applyLang() {
@@ -771,9 +754,6 @@ function applyLang() {
   document.getElementById('h-title').textContent = t.title;
   document.getElementById('h-sub').textContent = t.sub;
   document.getElementById('lbl-this-week').textContent = t.thisWeek;
-  document.getElementById('lbl-progress').textContent = t.progress;
-  document.getElementById('lbl-km').textContent = t.km;
-  document.getElementById('lbl-ff').textContent = t.ff;
   document.getElementById('lbl-timeline').textContent = activeTimelineView === 'target' ? t.timelineTarget : t.timelineDelayed;
   document.getElementById('lbl-calendar').textContent = t.calendar;
   document.getElementById('lbl-upcoming').textContent = t.upcoming;
@@ -861,21 +841,7 @@ function formatWeekRange(start, end) {
   return `${T.en.months[start.getMonth()].slice(0,3)} ${start.getDate()} - ${T.en.months[end.getMonth()].slice(0,3)} ${end.getDate()}, ${end.getFullYear()}`;
 }
 
-// ─── PROGRESS ─────────────────────────────────────────────────────────
-function updateProgress() {
-  const view = getActiveView();
-  const mDone = view.milestones.filter(i=>isChecked(i)).length;
-  const fDone = view.fundflows.filter(i=>isChecked(i)).length;
-  const mPct = view.milestones.length ? Math.round(mDone/view.milestones.length*100) : 0;
-  const fPct = view.fundflows.length ? Math.round(fDone/view.fundflows.length*100) : 0;
-  document.getElementById('pb-milestone').style.width = mPct+'%';
-  document.getElementById('pb-fundflow').style.width = fPct+'%';
-  const t = T[lang];
-  document.getElementById('pm-done').textContent = mDone+' '+t.done;
-  document.getElementById('pm-total').textContent = view.milestones.length+' '+t.total;
-  document.getElementById('pf-done').textContent = fDone+' '+t.done;
-  document.getElementById('pf-total').textContent = view.fundflows.length+' '+t.total;
-}
+
 
 // ─── THIS WEEK ────────────────────────────────────────────────────────
 function renderThisWeek() {
@@ -1025,7 +991,7 @@ function renderTimeline() {
 
 function toggleCheck(id, cb) {
   setCheckedById(id, cb.checked);
-  updateProgress();
+
   renderThisWeek();
   renderTimeline();
 }
