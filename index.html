@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Navigator - ABS Setup Timeline</title>
+<title>Navigator - Transaction Timeline</title>
 <style>
   :root {
     --primary: #1a2f5e;
@@ -46,20 +46,6 @@
   .card { background: var(--card); border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); padding: 20px; }
   .card-title { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   .card-title .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-
-  /* Progress Summary */
-  .progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-  .progress-box { border-radius: 10px; padding: 14px 16px; }
-  .progress-box.milestone { background: var(--milestone-light); border-left: 4px solid var(--milestone-color); }
-  .progress-box.fundflow { background: var(--fundflow-light); border-left: 4px solid var(--fundflow-color); }
-  .progress-box h3 { font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; }
-  .progress-box h3.milestone { color: var(--milestone-color); }
-  .progress-box h3.fundflow { color: var(--fundflow-color); }
-  .progress-bar-wrap { background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 6px; }
-  .progress-bar { height: 100%; border-radius: 8px; transition: width 0.4s; }
-  .progress-bar.milestone { background: var(--milestone-color); }
-  .progress-bar.fundflow { background: var(--fundflow-color); }
-  .progress-meta { font-size: 0.75rem; color: var(--text-light); display: flex; justify-content: space-between; }
 
   /* This Week */
   .week-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -120,7 +106,6 @@
   .step-tag.bd { background: #f1f5f9; color: #475569; }
   .step-tag.group { background: #f8fafc; color: #475569; }
   .step-note { font-size: 0.78rem; color: var(--text-light); margin-top: 4px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--border); }
-  .check-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7rem; color: var(--fundflow-color); font-weight: 600; }
   .delayed-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--holiday); font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 10px; }
 
   /* Status checkbox */
@@ -173,14 +158,6 @@
 
   .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
-
-  /* View Switch */
-  .view-switch-wrap { max-width: 1400px; margin: 18px auto 0; padding: 0 20px; }
-  .view-switch { display: inline-flex; gap: 8px; background: var(--card); border-radius: 16px; padding: 6px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); border: 1px solid var(--border); }
-  .view-btn { border: none; background: transparent; color: var(--primary); padding: 10px 16px; border-radius: 12px; cursor: pointer; font-size: 0.88rem; font-weight: 700; transition: all 0.2s; }
-  .view-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; box-shadow: 0 4px 12px rgba(26,47,94,0.18); }
-  .view-btn:hover:not(.active) { background: #eef3fc; }
-
   /* Hidden */
   .hidden { display: none !important; }
 </style>
@@ -189,8 +166,8 @@
 
 <div class="header">
   <div class="header-left">
-    <h1 id="h-title">Navigator · ABS Setup Timeline</h1>
-    <p id="h-sub">Transaction tracking dashboard · Apr-Jun 2026</p>
+    <h1 id="h-title">Navigator · Transaction Timeline</h1>
+    <p id="h-sub">Overall Transaction Timeline · Apr-Jul 2026</p>
   </div>
   <div class="header-right">
     <div class="today-badge" id="today-badge"></div>
@@ -198,14 +175,6 @@
       <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
       <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
     </div>
-  </div>
-
-</div>
-
-<div class="view-switch-wrap">
-  <div class="view-switch">
-    <button class="view-btn active" onclick="setTimelineView('target')" id="view-target">目标时间表</button>
-    <button class="view-btn" onclick="setTimelineView('delayed')" id="view-delayed">顺延时间表</button>
   </div>
 </div>
 
@@ -288,283 +257,62 @@ const HOLIDAYS = [
   { date: '2026-05-05', zh: '劳动节假期', en: 'Labour Day Holiday' },
 ];
 
-const TARGET_MILESTONES = [
-  { id: 'm1', name_zh: '中金流程', name_en: 'CICC Internal Process', date: '2026-04-03', bd: 0, note_zh: null, note_en: null, check: true },
-  { id: 'm2', name_zh: '文件定稿', name_en: 'Docs Finalized', date: '2026-04-02', bd: 0, note_zh: '待定：SPA、OMA', note_en: 'Pending: SPA, OMA', check: true },
-  { id: 'm3', name_zh: '递交封卷材料', name_en: 'Submit Finalized Docs', date: '2026-04-07', bd: 1, note_zh: null, note_en: null, check: true },
-  { id: 'm4', name_zh: '无异议函', name_en: 'SHEx No-objection Letter', date: '2026-04-09', bd: 2, note_zh: null, note_en: null, check: false },
-  { id: 'm5', name_zh: 'ESR 上会', name_en: 'ESR FIC', date: '2026-04-09', bd: 0, note_zh: null, note_en: null, check: true },
-  { id: 'm6', name_zh: '文件传签完成', name_en: 'Docs Signed Off', date: '2026-04-10', bd: 1, note_zh: '签署方：ESR、China Life、CICC、Guangfa Bank、IRE', note_en: 'Signing Parties: ESR, China Life, CICC, Guangfa Bank, IRE', check: false },
-  { id: 'm7', name_zh: '提交发行前备案', name_en: 'Submit Pre-Issuance Filings', date: '2026-04-10', bd: 0, note_zh: null, note_en: null, check: false },
-  { id: 'm8', name_zh: '发行前备案通过 / 提交发行公告', name_en: 'Pre-Issuance Filing Approved / Submit Issuance Announcement', date: '2026-04-14', bd: 2, note_zh: null, note_en: null, check: false },
-  { id: 'm9', name_zh: '簿记 / 协议定价日 / 发行结果公告', name_en: 'Bookbuilding / Announcement of Issuance Results', date: '2026-04-16', bd: 2, note_zh: null, note_en: null, check: false },
-  { id: 'm10', name_zh: '缴款通知书', name_en: 'Payment Notice / Subscription Allocation Notification', date: '2026-04-17', bd: 1, note_zh: null, note_en: null, check: false },
-  { id: 'm11', name_zh: '签署认购协议', name_en: 'Subscription Signing', date: '2026-04-17', bd: 0, note_zh: null, note_en: null, check: false },
-  { id: 'm12', name_zh: '投资人完成缴款', name_en: 'Investors Complete Capital Injection to ABS', date: '2026-04-21', bd: 2, note_zh: null, note_en: null, check: false },
-  { id: 'm13', name_zh: 'ABS 发行', name_en: 'ABS Set Up', date: '2026-04-22', bd: 1, note_zh: null, note_en: null, check: false },
-];
-const TARGET_FUNDFLOWS = [
-  { id: 'f1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', bd: null, note_zh: null, note_en: null, check: true },
-  { id: 'f2', name_zh: 'Lux 资金打出', name_en: 'Lux Funding Wire to Ruifu', date: '2026-04-10', bd: null, note_zh: null, note_en: null, check: false },
-  { id: 'f3', name_zh: 'Lux 资金抵达 Ruifu', name_en: 'Lux Funding Arrives at Ruifu', date: '2026-04-13', bd: 1, note_zh: null, note_en: null, check: false },
-  { id: 'f4', name_zh: 'Ruifu 资金静置期', name_en: 'Ruifu Funding Mandatory On-hold Period', date: '2026-04-16', bd: 3, note_zh: null, note_en: null, check: false },
-  { id: 'f5', name_zh: 'AML 审核通过', name_en: 'AML Greenlight', date: '2026-04-17', bd: 1, note_zh: '前置核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: false },
-  { id: 'f6', name_zh: 'Ruifu USD 转 RMB', name_en: 'Ruifu USD to RMB', date: '2026-04-17', bd: 1, note_zh: '核查：缴款通知书之后', note_en: 'Check: After Payment Notice', check: false },
-  { id: 'f7', name_zh: '发起 Ruifu 向 ABS 缴款', name_en: 'Initiate Capital Injection from Ruifu to ABS', date: '2026-04-20', bd: 1, note_zh: null, note_en: null, check: false },
-  { id: 'f8', name_zh: '完成 ABS 缴款', name_en: 'Complete Capital Injection to ABS', date: '2026-04-21', bd: 1, note_zh: '核查：和外部投资人同一天缴款', note_en: 'Check: On the same day as external investor capital injection', check: false },
-];
-const TARGET_WORKFLOWS = [
-  { id: 'w1', name_zh: '和奉贤规自局沟通签约', name_en: 'Coordinate signing with Fengxian Planning and Natural Resources Bureau', date: '2026-04-14', offset: 'T-6', duration_zh: '当日', duration_en: 'Same day', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: null, note_en: null, check: false },
-  { id: 'w2', name_zh: '签订土地出让合同时间', name_en: 'Execute land grant contract', date: '2026-04-21', offset: 'T-1', duration_zh: '一周', duration_en: '1 week', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '交易确定性高后，ABS设立日（即为交割日）前', note_en: 'After transaction certainty is high and before ABS set-up date, which is the closing date', check: false },
-  { id: 'w3', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate mortgage release with Guangfa in advance', date: '2026-04-23', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
-  { id: 'w4', name_zh: '签署土地出让合同', name_en: 'Sign land grant contract', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '太仓和昆山完成转让', note_en: 'After Taicang and Kunshan transfers are completed', check: false },
-  { id: 'w5', name_zh: '进行奉贤项目公司股权转让', name_en: 'Complete Fengxian project company equity transfer', date: '2026-04-30', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '签署土地出让合同', note_en: 'After signing the land grant contract', check: false },
-  { id: 'w5a', name_zh: '待ESR上完会后和ESR及中金确定发行规模', name_en: 'Confirm issuance size with ESR and CICC after ESR FIC', date: '2026-04-10', offset: 'T-8', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: null, note_en: null, check: true },
-  { id: 'w5b', name_zh: '提前 Accrue Rental Guarantee', name_en: 'Advance Accrue Rental Guarantee', date: '2026-04-21', offset: 'T-1', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: 'Ongoing，需要在ABS成立前完成', note_en: 'Ongoing, needs to be completed before ABS set-up', check: false },
-  { id: 'w6', name_zh: '和深圳金融局开始沟通减资事宜', name_en: 'Start discussions with Shenzhen Financial Bureau on capital reduction', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: 'IRE 资金安排', category_en: 'IRE Funding', note_zh: null, note_en: null, check: false },
-  { id: 'w7', name_zh: '请广发发起解除抵押流程', name_en: 'Ask Guangfa to initiate the mortgage release process', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '收到全部 equity 款项', note_en: 'After receiving all equity proceeds', check: false },
-  { id: 'w8', name_zh: '完成市不动产中心数据入库', name_en: 'Complete municipal real estate center data filing', date: '2026-05-25', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
-  { id: 'w9', name_zh: '银行到不动产中心解除抵押', name_en: 'Bank completes mortgage release at the real estate center', date: '2026-06-01', offset: 'T+25', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '待确定解除抵押前提', note_en: 'Prerequisites for mortgage release to be confirmed', check: false },
-  { id: 'w10', name_zh: '景顺到不动产中心办理两证合一', name_en: 'Invesco completes the two-certificates consolidation at the real estate center', date: '2026-06-08', offset: 'T+30', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '解除抵押，必须在 08/18/2026 资金外转之前完成', note_en: 'Mortgage must be released before the outbound remittance on 08/18/2026', check: false },
+// Data from Excel - Overall Transaction Timeline
+const MILESTONES = [
+  { id: 'abs1', name_zh: '封卷文件定稿', name_en: 'Filing Docs Finalized', date: '2026-04-08', offset: 'T-37', duration_zh: '当日', duration_en: 'Same day', note_zh: '前置条件：【待定稿】SPA、OMA、奉贤土地出让披露口径、Loan Docs', note_en: 'Pre-requisite: SPA, OMA, Fengxian land grant disclosure terms, Loan Docs', check: true },
+  { id: 'abs2', name_zh: '上传封卷材料', name_en: 'Submit Filing Docs', date: '2026-04-10', offset: 'T-35', duration_zh: '当日', duration_en: 'Same day', note_zh: null, note_en: null, check: true },
+  { id: 'abs3', name_zh: '取得无异议函', name_en: 'No-objection Letter', date: '2026-05-12', offset: 'T-16', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
+  { id: 'abs4', name_zh: 'ESR 内部确认SPA条款', name_en: 'ESR SPA Confirmation', date: '2026-05-15', offset: 'T-13', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs5', name_zh: '发行前备案文件完成定稿', name_en: 'Pre-issuance Filing Docs Finalized', date: '2026-05-18', offset: 'T-12', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs6', name_zh: '文件传签完成', name_en: 'Docs Signed Off', date: '2026-05-20', offset: 'T-10', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs7', name_zh: '提交发行前备案', name_en: 'Submit Pre-issuance Filing', date: '2026-05-21', offset: 'T-9', duration_zh: null, duration_en: null, note_zh: '全套发行前备案材料定稿用印', note_en: 'Pre-issuance filing docs finalized and sealed', check: false },
+  { id: 'abs8', name_zh: '发行前备案通过', name_en: 'Pre-issuance Filing Approved', date: '2026-05-25', offset: 'T-7', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs9', name_zh: '协议定价日', name_en: 'Pricing Date', date: '2026-05-27', offset: 'T-5', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs10', name_zh: '缴款通知书', name_en: 'Payment Notice', date: '2026-05-28', offset: 'T-4', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs11', name_zh: '投资人完成缴款', name_en: 'Investors Payment', date: '2026-06-01', offset: 'T-2', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'abs12', name_zh: 'ABS设立', name_en: 'ABS Setup', date: '2026-06-02', offset: 'T+0', duration_zh: '当日', duration_en: 'Same day', note_zh: '完成募集账户验资 | 全部募集资金划转至专项计划托管户', note_en: 'Fundraising account verification | All proceeds transferred to SPV custody account', check: false },
+  { id: 'abs13', name_zh: '签署认购协议', name_en: 'Sign Subscription Agreement', date: '2026-06-03', offset: 'T+1', duration_zh: '【四日内】', duration_en: '[Within 4 days]', note_zh: null, note_en: null, check: false },
+  { id: 'abs14', name_zh: 'SPVs完成股权转让工商变更登记', name_en: 'SPVs Equity Transfer Registration', date: '2026-06-03', offset: 'T+1', duration_zh: '【两日】', duration_en: '[Within 2 days]', note_zh: null, note_en: null, check: false },
 ];
 
-const DELAYED_MILESTONES = [
-  {
-    "id": "dm1",
-    "name_zh": "中金流程",
-    "name_en": "CICC Internal Process",
-    "date": "2026-04-09",
-    "bd": 0,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm2",
-    "name_zh": "文件定稿",
-    "name_en": "Docs Finalized",
-    "date": "2026-04-08",
-    "bd": 0,
-    "note_zh": "待定：SPA、OMA",
-    "note_en": "Pending：SPA、OMA",
-    "check": false
-  },
-  {
-    "id": "dm3",
-    "name_zh": "递交封卷材料",
-    "name_en": "Submit Finalized Docs",
-    "date": "2026-04-10",
-    "bd": 1,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm4",
-    "name_zh": "无异议函",
-    "name_en": "SHEx No-objection Letter",
-    "date": "2026-04-20",
-    "bd": 2,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm5",
-    "name_zh": "ESR 上会",
-    "name_en": "ESR FIC",
-    "date": "2026-04-09",
-    "bd": 0,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm6",
-    "name_zh": "文件传签完成",
-    "name_en": "Docs Signed Off",
-    "date": "2026-04-22",
-    "bd": 2,
-    "note_zh": "签署方：ESR、China Life、CICC、Guangfa Bank、IRE",
-    "note_en": "Signinng Parties：ESR、China Life、CICC、Guangfa Bank、IRE",
-    "check": false
-  },
-  {
-    "id": "dm7",
-    "name_zh": "提交发行前备案",
-    "name_en": "Submit Pre-Issuance Filings",
-    "date": "2026-04-22",
-    "bd": 0,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm8",
-    "name_zh": "发行前备案通过 / 提交发行公告",
-    "name_en": "Pre-issuance filing approved / Submit issuance announcement",
-    "date": "2026-04-24",
-    "bd": 2,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm9",
-    "name_zh": "簿记 / 协议定价日 /发行结果公告",
-    "name_en": "Bookbuilding / Announcement of Issuance Results",
-    "date": "2026-04-28",
-    "bd": 2,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm10",
-    "name_zh": "缴款通知书",
-    "name_en": "Payment Notice / Subscription Allocation Notification",
-    "date": "2026-04-29",
-    "bd": 1,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm11",
-    "name_zh": "签署认购协议",
-    "name_en": "Subscription Signing",
-    "date": "2026-04-29",
-    "bd": 0,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm12",
-    "name_zh": "投资人完成缴款",
-    "name_en": "Investors Completes Capital Injection to ABS",
-    "date": "2026-05-06",
-    "bd": 2,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "dm13",
-    "name_zh": "ABS 发行",
-    "name_en": "ABS Set up",
-    "date": "2026-05-07",
-    "bd": 1,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  }
+const FUNDFLOWS = [
+  { id: 'ff1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', offset: 'T-40', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
+  { id: 'ff2', name_zh: 'Lux 资金打出', name_en: 'Lux Funding Wire Out', date: '2026-05-14', offset: 'T-15', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
+  { id: 'ff3', name_zh: 'Lux 资金抵达 Ruifu', name_en: 'Lux Funding Arrives at Ruifu', date: '2026-05-15', offset: 'T-14', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
+  { id: 'ff4', name_zh: 'Ruifu 资金静置期', name_en: 'Ruifu On-hold Period', date: '2026-05-20', offset: null, duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'ff5', name_zh: 'AML Greenlight', name_en: 'AML Greenlight', date: '2026-05-28', offset: null, duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'ff6', name_zh: 'Ruifu USD 转 RMB', name_en: 'Ruifu USD to RMB', date: '2026-05-28', offset: null, duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  { id: 'ff7', name_zh: '完成 ABS 缴款', name_en: 'Complete ABS Payment', date: '2026-06-02', offset: null, duration_zh: null, duration_en: null, note_zh: '前置条件：增资完成', note_en: 'Pre-requisite: Capital increase completed', check: false },
+  { id: 'ff8', name_zh: '和深圳金融局开始沟通减资事宜', name_en: 'Discuss Capital Reduction with Shenzhen Financial Bureau', date: '2026-06-30', offset: 'T+20', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
 ];
-const DELAYED_FUNDFLOWS = [
-  {
-    "id": "df1",
-    "name_zh": "Lux 资金到位",
-    "name_en": "Lux Funding Ready",
-    "date": "2026-04-02",
-    "bd": null,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "df2",
-    "name_zh": "Lux 资金打出",
-    "name_en": "Lux Funding Wire to Ruifu",
-    "date": "2026-04-10",
-    "bd": null,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "df3",
-    "name_zh": "Lux 资金抵达 Ruifu",
-    "name_en": "Lux Funding Arrives at Ruifu",
-    "date": "2026-04-21",
-    "bd": 1,
-    "note_zh": "核查：收到无异议函之后",
-    "note_en": "Check: After receiving no objection letter",
-    "check": false
-  },
-  {
-    "id": "df4",
-    "name_zh": "Ruifu 资金静置期",
-    "name_en": "Ruifu Funding Mandatory On-hold Period",
-    "date": "2026-04-24",
-    "bd": 3,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "df5",
-    "name_zh": "AML Greenlight",
-    "name_en": "AML Greenlight",
-    "date": "2026-04-27",
-    "bd": 1,
-    "note_zh": "核查：缴款通知书之后",
-    "note_en": "Check: Aftre Payment Notice",
-    "check": false
-  },
-  {
-    "id": "df6",
-    "name_zh": "Ruifu USD 转 RMB",
-    "name_en": "Ruifu USD to RMB",
-    "date": "2026-04-27",
-    "bd": 1,
-    "note_zh": "核查：缴款通知书之后",
-    "note_en": "Check：After Payment Notice",
-    "check": false
-  },
-  {
-    "id": "df7",
-    "name_zh": "发起 Ruifu 向 ABS 缴款",
-    "name_en": "Initiate Capital Injection from Ruifu to ABS",
-    "date": "2026-04-28",
-    "bd": 1,
-    "note_zh": null,
-    "note_en": null,
-    "check": false
-  },
-  {
-    "id": "df8",
-    "name_zh": "完成 ABS 缴款",
-    "name_en": "Complete capital Injection to ABS",
-    "date": "2026-04-29",
-    "bd": 1,
-    "note_zh": "核查：和外部投资人同一天缴款",
-    "note_en": "Check：On the same day as external investor capital injection",
-    "check": false
-  }
-];
-const DELAYED_WORKFLOWS = [];
 
-const TIMELINE_VIEWS = {
-  target: {
-    key: 'target',
-    milestones: TARGET_MILESTONES,
-    fundflows: TARGET_FUNDFLOWS,
-    workflows: TARGET_WORKFLOWS,
-  },
-  delayed: {
-    key: 'delayed',
-    milestones: DELAYED_MILESTONES,
-    fundflows: DELAYED_FUNDFLOWS,
-    workflows: DELAYED_WORKFLOWS,
-  }
-};
+const WORKFLOWS = [
+  { id: 'wf1', name_zh: '提前Accure Rental Guarantee', name_en: 'Advance Accure Rental Guarantee', date: '2026-06-01', offset: 'T-1', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: 'Ongoing，需要在ABS成立前完成', note_en: 'Ongoing, needs to be completed before ABS setup', check: false },
+  { id: 'wf2', name_zh: '和奉贤规自局沟通签约', name_en: 'Coordinate with Fengxian Planning Bureau', date: '2026-05-25', offset: 'T-6', duration_zh: '当日', duration_en: 'Same day', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: null, note_en: null, check: false },
+  { id: 'wf3', name_zh: '签订土地出让合同时间', name_en: 'Execute Land Grant Contract', date: '2026-06-01', offset: 'T-1', duration_zh: '一周', duration_en: '1 week', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '交易确定性高后，ABS设立日（即为交割日）前', note_en: 'After transaction certainty, before ABS setup date (closing date)', check: false },
+  { id: 'wf4', name_zh: '签署土地出让合同', name_en: 'Sign Land Grant Contract', date: '2026-06-10', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '太仓和昆山完成转让', note_en: 'Taicang and Kunshan transfers completed', check: false },
+  { id: 'wf5', name_zh: '进行奉贤项目公司股权转让', name_en: 'Fengxian Project Company Equity Transfer', date: '2026-06-10', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '签署土地出让合同', note_en: 'After signing land grant contract', check: false },
+  { id: 'wf6', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate Mortgage Release with Guangfa', date: '2026-06-03', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
+  { id: 'wf7', name_zh: '请广发发起解除抵押流程', name_en: 'Guangfa Initiates Mortgage Release', date: '2026-06-30', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '收到所有equity', note_en: 'After receiving all equity proceeds', check: false },
+  { id: 'wf8', name_zh: '完成市不动产中心数据入库', name_en: 'Complete Real Estate Center Data Filing', date: '2026-06-30', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
+  { id: 'wf9', name_zh: '银行到不动产中心解除抵押', name_en: 'Bank Completes Mortgage Release', date: '2026-07-07', offset: 'T+25', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '【待确定解除抵押前提】', note_en: '[Mortgage release prerequisites TBD]', check: false },
+  { id: 'wf10', name_zh: '景顺到不动产中心办理两证合一', name_en: 'Invesco Processes Two Certificates Consolidation', date: '2026-07-14', offset: 'T+30', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '解除抵押，必须在08/18/2026 资金外转之前完成', note_en: 'Mortgage must be released before outbound remittance on 08/18/2026', check: false },
+];
 
 // ─── STATE ─────────────────────────────────────────────────────────────
 let lang = 'zh';
-let activeTimelineView = 'target';
 let currentFilters = new Set(['milestone','fundflow','workflow']);
 let calYear = 2026, calMonth = 3; // 0-indexed: 3 = April
-const ITEM_INDEX = Object.fromEntries(Object.values(TIMELINE_VIEWS).flatMap(view => getItemsForView(view).map(item => [item.id, item])));
+
+function getAllItems() {
+  return [
+    ...MILESTONES.map(m => ({...m, stream:'milestone'})),
+    ...FUNDFLOWS.map(f => ({...f, stream:'fundflow'})),
+    ...WORKFLOWS.map(w => ({...w, stream:'workflow'}))
+  ];
+}
+
+const ITEM_INDEX = Object.fromEntries(getAllItems().map(item => [item.id, item]));
 
 function normalizeTaskName(name) {
   return String(name || '')
@@ -582,11 +330,9 @@ function getSharedTaskKey(item) {
 }
 
 const sharedChecked = {};
-Object.values(TIMELINE_VIEWS).forEach(view => {
-  getItemsForView(view).forEach(item => {
-    const key = getSharedTaskKey(item);
-    sharedChecked[key] = sharedChecked[key] || !!item.check;
-  });
+getAllItems().forEach(item => {
+  const key = getSharedTaskKey(item);
+  sharedChecked[key] = sharedChecked[key] || !!item.check;
 });
 
 function isChecked(item) {
@@ -617,35 +363,31 @@ function daysDiff(dateStr) {
 // ─── LANGUAGE ─────────────────────────────────────────────────────────
 const T = {
   zh: {
-    title:'Navigator · ABS 发行时间表',
-    sub:'交易追踪仪表板 · 2026年4月-6月',
+    title:'Navigator · 交易时间表',
+    sub:'整体交易时间表 · 2026年4月-7月',
     thisWeek:'本周任务',
     weekEmpty:'本周暂无任务',
     weekCount: c => `本周共 ${c} 项任务`,
     progress:'整体进度',
-    km:'关键里程碑',
+    km:'ABS 设立',
     ff:'资金流',
     done:'已完成',
     total:'共',
     timeline:'交易时间表',
-    timelineTarget:'Target Timeline',
-    timelineDelayed:'顺延时间表',
-    viewTarget:'目标时间表',
-    viewDelayed:'顺延时间表',
     calendar:'日历视图',
     upcoming:'即将到来',
     holidays:'节假日提示',
     lgDone:'已完成',
     lgToday:'今天',
-    lgKm:'关键里程碑',
+    lgKm:'ABS 设立',
     lgFf:'资金流',
-    lgWf:'工作流',
+    lgWf:'其它工作流',
     lgDelayed:'已延误',
     delayed:'延误',
     tabAll:'全部',
-    tabKm:'关键里程碑',
+    tabKm:'ABS 设立',
     tabFf:'资金流',
-    tabWf:'工作流',
+    tabWf:'其它工作流',
     bd:'BD',
     duration:'周期',
     today:'今天',
@@ -655,35 +397,31 @@ const T = {
     weekdays:['日','一','二','三','四','五','六'],
   },
   en: {
-    title:'Navigator · ABS Setup Timeline',
-    sub:'Transaction tracking dashboard · Apr-Jun 2026',
+    title:'Navigator · Transaction Timeline',
+    sub:'Overall Transaction Timeline · Apr-Jul 2026',
     thisWeek:'This Week',
     weekEmpty:'No tasks scheduled this week',
     weekCount: c => `${c} task${c===1?'':'s'} this week`,
     progress:'Overall Progress',
-    km:'Key Milestones',
+    km:'ABS Setup',
     ff:'Fund Flow',
     done:'Done',
     total:'Total',
     timeline:'Transaction Timeline',
-    timelineTarget:'Target Timeline',
-    timelineDelayed:'Delayed Timeline',
-    viewTarget:'Target Timeline',
-    viewDelayed:'顺延时间表 / Delayed Timeline',
     calendar:'Calendar View',
     upcoming:'Upcoming Events',
     holidays:'Holiday Alerts',
     lgDone:'Completed',
     lgToday:'Today',
-    lgKm:'Key Milestones',
+    lgKm:'ABS Setup',
     lgFf:'Fund Flow',
-    lgWf:'Workflow',
+    lgWf:'Other Workflows',
     lgDelayed:'Delayed',
     delayed:'Delayed',
     tabAll:'All',
-    tabKm:'Key Milestones',
+    tabKm:'ABS Setup',
     tabFf:'Fund Flow',
-    tabWf:'Workflow',
+    tabWf:'Other Workflows',
     bd:'BD',
     duration:'Duration',
     today:'Today',
@@ -694,46 +432,6 @@ const T = {
   }
 };
 
-
-function setTimelineView(viewKey) {
-  activeTimelineView = viewKey;
-  document.getElementById('view-target').classList.toggle('active', viewKey === 'target');
-  document.getElementById('view-delayed').classList.toggle('active', viewKey === 'delayed');
-
-  const availableStreams = getAvailableStreams();
-  currentFilters = new Set(availableStreams);
-  if (!availableStreams.includes('workflow')) {
-    document.getElementById('tab-workflow').classList.add('hidden');
-    document.getElementById('legend-workflow').classList.add('hidden');
-  } else {
-    document.getElementById('tab-workflow').classList.remove('hidden');
-    document.getElementById('legend-workflow').classList.remove('hidden');
-  }
-
-  applyLang();
-  updateFilterButtons();
-
-  renderThisWeek();
-  renderTimeline();
-  renderCalendar();
-  renderUpcoming();
-  renderHolidays();
-}
-
-function updateFilterButtons() {
-  const availableStreams = getAvailableStreams();
-  const allSelected = availableStreams.length > 0 && availableStreams.every(x => currentFilters.has(x));
-  document.getElementById('tab-all').classList.toggle('active', allSelected);
-
-  ['milestone','fundflow','workflow'].forEach(x => {
-    const btn = document.getElementById('tab-'+x);
-    const available = availableStreams.includes(x);
-    btn.classList.toggle('active', available && currentFilters.has(x));
-    btn.disabled = !available;
-    btn.style.opacity = available ? '1' : '0.45';
-    btn.style.pointerEvents = available ? 'auto' : 'none';
-  });
-}
 
 function setLang(l) {
   lang = l;
@@ -746,7 +444,6 @@ function setLang(l) {
   renderCalendar();
   renderUpcoming();
   renderHolidays();
-
 }
 
 function applyLang() {
@@ -754,7 +451,7 @@ function applyLang() {
   document.getElementById('h-title').textContent = t.title;
   document.getElementById('h-sub').textContent = t.sub;
   document.getElementById('lbl-this-week').textContent = t.thisWeek;
-  document.getElementById('lbl-timeline').textContent = activeTimelineView === 'target' ? t.timelineTarget : t.timelineDelayed;
+  document.getElementById('lbl-timeline').textContent = t.timeline;
   document.getElementById('lbl-calendar').textContent = t.calendar;
   document.getElementById('lbl-upcoming').textContent = t.upcoming;
   document.getElementById('lbl-holidays').textContent = t.holidays;
@@ -768,39 +465,12 @@ function applyLang() {
   document.getElementById('tab-milestone').textContent = t.tabKm;
   document.getElementById('tab-fundflow').textContent = t.tabFf;
   document.getElementById('tab-workflow').textContent = t.tabWf;
-  document.getElementById('view-target').textContent = t.viewTarget;
-  document.getElementById('view-delayed').textContent = t.viewDelayed;
   // today badge
   const d = today;
   const mName = lang==='zh' ? (d.getMonth()+1)+'月'+d.getDate()+'日' : T.en.months[d.getMonth()]+' '+d.getDate();
   document.getElementById('today-badge').textContent = (lang==='zh'?'今天：':'Today: ') + mName;
 }
 
-
-function getActiveView() {
-  return TIMELINE_VIEWS[activeTimelineView];
-}
-
-function getItemsForView(view) {
-  return [
-    ...view.milestones.map(m => ({...m, stream:'milestone'})),
-    ...view.fundflows.map(f => ({...f, stream:'fundflow'})),
-    ...view.workflows.map(w => ({...w, stream:'workflow'}))
-  ];
-}
-
-function getAvailableStreams() {
-  const view = getActiveView();
-  const streams = [];
-  if (view.milestones.length) streams.push('milestone');
-  if (view.fundflows.length) streams.push('fundflow');
-  if (view.workflows.length) streams.push('workflow');
-  return streams;
-}
-
-function getAllItems() {
-  return getItemsForView(getActiveView());
-}
 
 function getStreamLabel(item) {
   const t = T[lang];
@@ -884,14 +554,12 @@ function renderThisWeek() {
         <div class="week-task-name">${name}</div>
         <div class="week-task-meta">
           <span class="step-tag ${item.stream}">${getStreamLabel(item)}</span>
-          ${item.bd!==undefined && item.bd!==null ? `<span class="step-tag bd">${t.bd}+${item.bd}</span>` : ''}
           ${item.offset ? `<span class="step-tag bd">${item.offset}</span>` : ''}
           ${item.category_zh || item.category_en ? `<span class="step-tag group">${lang==='zh' ? item.category_zh : item.category_en}</span>` : ''}
           ${item.duration_zh || item.duration_en ? `<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>` : ''}
           <span style="font-size:0.72rem;color:${delayed?'var(--holiday)':diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${formatShortDate(dateObj)} · ${t.daysLeft(diff)}</span>
           ${delayed ? `<span class="delayed-badge">⏰ ${t.delayed}</span>` : ''}
-          ${item.check ? `<span class="check-badge">⚑ ${t.check}</span>` : ''}
-        </div>
+                  </div>
         ${note ? `<div class="week-task-note">📌 ${note}</div>` : ''}
       </div>
     `;
@@ -902,14 +570,12 @@ function renderThisWeek() {
 // ─── TIMELINE ─────────────────────────────────────────────────────────
 function filterTimeline(f) {
   if (f === 'all') {
-    const allSelected = currentFilters.size === 3;
-    currentFilters = allSelected ? new Set() : new Set(['milestone','fundflow','workflow']);
+    currentFilters = new Set(['milestone','fundflow','workflow']);
   } else {
-    if (currentFilters.has(f)) currentFilters.delete(f);
-    else currentFilters.add(f);
+    currentFilters = new Set([f]);
   }
 
-  document.getElementById('tab-all').classList.toggle('active', currentFilters.size === 3);
+  document.getElementById('tab-all').classList.toggle('active', f === 'all');
   ['milestone','fundflow','workflow'].forEach(x => {
     document.getElementById('tab-'+x).classList.toggle('active', currentFilters.has(x));
   });
@@ -918,16 +584,15 @@ function filterTimeline(f) {
 
 function renderTimeline() {
   const t = T[lang];
-  const view = getActiveView();
   let items = [];
   if (currentFilters.has('milestone')) {
-    view.milestones.forEach(m => items.push({...m, stream:'milestone'}));
+    MILESTONES.forEach(m => items.push({...m, stream:'milestone'}));
   }
   if (currentFilters.has('fundflow')) {
-    view.fundflows.forEach(f => items.push({...f, stream:'fundflow'}));
+    FUNDFLOWS.forEach(f => items.push({...f, stream:'fundflow'}));
   }
   if (currentFilters.has('workflow')) {
-    view.workflows.forEach(w => items.push({...w, stream:'workflow'}));
+    WORKFLOWS.forEach(w => items.push({...w, stream:'workflow'}));
   }
   items.sort((a,b)=>a.date.localeCompare(b.date));
 
@@ -973,14 +638,12 @@ function renderTimeline() {
         </div>
         <div class="step-meta">
           <span class="step-tag ${item.stream}">${getStreamLabel(item)}</span>
-          ${item.bd!==undefined && item.bd!==null?`<span class="step-tag bd">${t.bd}+${item.bd}</span>`:''}
           ${item.offset?`<span class="step-tag bd">${item.offset}</span>`:''}
           ${item.category_zh || item.category_en?`<span class="step-tag group">${lang==='zh' ? item.category_zh : item.category_en}</span>`:''}
           ${item.duration_zh || item.duration_en?`<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>`:''}
           <span style="font-size:0.72rem;color:${delayed?'var(--holiday)':diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${daysLabel}</span>
           ${delayed?`<span class="delayed-badge">⏰ ${t.delayed}</span>`:''}
-          ${item.check?`<span class="check-badge">⚑ ${t.check}</span>`:''}
-        </div>
+                  </div>
         ${note?`<div class="step-note">📌 ${note}</div>`:''}
       </div>
       <input type="checkbox" class="step-checkbox" ${isDone?'checked':''} onclick="toggleCheck('${item.id}',this)" title="${lang==='zh'?'标记完成':'Mark complete'}">
@@ -991,13 +654,11 @@ function renderTimeline() {
 
 function toggleCheck(id, cb) {
   setCheckedById(id, cb.checked);
-
   renderThisWeek();
   renderTimeline();
 }
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────
-// Build event map
 function buildEventMap() {
   const map = {};
   getAllItems().forEach(item => {
@@ -1145,8 +806,7 @@ function renderUpcoming() {
         <div class="upcoming-name">${name}</div>
         <div class="upcoming-stream" style="color:${color};font-weight:600;">${getStreamLabel(item)} · ${dLabel}</div>
       </div>
-      ${item.check?`<span style="font-size:0.75rem;color:var(--fundflow-color);">⚑</span>`:''}
-    `;
+          `;
     container.appendChild(div);
   });
 }
@@ -1171,7 +831,7 @@ function renderHolidays() {
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────
-setTimelineView('target');
+setLang('zh');
 </script>
 </body>
 </html>
