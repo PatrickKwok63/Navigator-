@@ -106,6 +106,7 @@
   .step-tag.bd { background: #f1f5f9; color: #475569; }
   .step-tag.group { background: #f8fafc; color: #475569; }
   .step-note { font-size: 0.78rem; color: var(--text-light); margin-top: 4px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--border); }
+  .check-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7rem; color: var(--fundflow-color); font-weight: 600; }
   .delayed-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--holiday); font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 10px; }
 
   /* Status checkbox */
@@ -167,7 +168,7 @@
 <div class="header">
   <div class="header-left">
     <h1 id="h-title">Navigator · Transaction Timeline</h1>
-    <p id="h-sub">Overall Transaction Timeline · Apr-Jul 2026</p>
+    <p id="h-sub">Overall Transaction Timeline · Apr-Aug 2026</p>
   </div>
   <div class="header-right">
     <div class="today-badge" id="today-badge"></div>
@@ -251,58 +252,691 @@
 <script>
 // ─── DATA ──────────────────────────────────────────────────────────────
 const HOLIDAYS = [
-  { date: '2026-04-06', zh: '清明节', en: 'Qingming Festival' },
-  { date: '2026-05-01', zh: '劳动节', en: 'Labour Day' },
-  { date: '2026-05-04', zh: '劳动节假期', en: 'Labour Day Holiday' },
-  { date: '2026-05-05', zh: '劳动节假期', en: 'Labour Day Holiday' },
+  {
+    "date": "2026-04-06",
+    "zh": "清明节",
+    "en": "Qingming Festival"
+  },
+  {
+    "date": "2026-05-01",
+    "zh": "劳动节",
+    "en": "Labour Day"
+  },
+  {
+    "date": "2026-05-04",
+    "zh": "劳动节假期",
+    "en": "Labour Day Holiday"
+  },
+  {
+    "date": "2026-05-05",
+    "zh": "劳动节假期",
+    "en": "Labour Day Holiday"
+  },
+  {
+    "date": "2026-06-19",
+    "zh": "端午节",
+    "en": "Dragon Boat Festival"
+  }
 ];
 
-// Data from Excel - Overall Transaction Timeline
+// Data from Excel - Overall Transaction Timeline (updated from 20260601 timetable)
 const MILESTONES = [
-  { id: 'abs1', name_zh: '封卷文件定稿', name_en: 'Filing Docs Finalized', date: '2026-04-08', offset: 'T-36', duration_zh: '当日', duration_en: 'Same day', note_zh: '前置条件：【待定稿】SPA、OMA、奉贤土地出让披露口径、Loan Docs', note_en: 'Pre-requisite: SPA, OMA, Fengxian land grant disclosure terms, Loan Docs', check: true },
-  { id: 'abs2', name_zh: '上传封卷材料', name_en: 'Submit Filing Docs', date: '2026-04-10', offset: 'T-34', duration_zh: '当日', duration_en: 'Same day', note_zh: null, note_en: null, check: true },
-  { id: 'abs3', name_zh: '取得无异议函', name_en: 'No-objection Letter', date: '2026-05-12', offset: 'T-15', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
-  { id: 'abs4', name_zh: 'ESR 内部确认SPA条款', name_en: 'ESR SPA Confirmation', date: '2026-05-15', offset: 'T-12', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs5', name_zh: '发行前备案文件完成定稿', name_en: 'Pre-issuance Filing Docs Finalized', date: '2026-05-18', offset: 'T-11', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs6', name_zh: '文件传签完成', name_en: 'Docs Signed Off', date: '2026-05-20', offset: 'T-9', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs7', name_zh: '提交发行前备案', name_en: 'Submit Pre-issuance Filing', date: '2026-05-21', offset: 'T-8', duration_zh: null, duration_en: null, note_zh: '全套发行前备案材料定稿用印', note_en: 'Pre-issuance filing docs finalized and sealed', check: false },
-  { id: 'abs8', name_zh: '发行前备案通过', name_en: 'Pre-issuance Filing Approved', date: '2026-05-22', offset: 'T-7', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs9', name_zh: '协议定价日', name_en: 'Pricing Date', date: '2026-05-26', offset: 'T-5', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs10', name_zh: '缴款通知书', name_en: 'Payment Notice', date: '2026-05-27', offset: 'T-4', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs11', name_zh: '投资人完成缴款', name_en: 'Investors Payment', date: '2026-05-29', offset: 'T-2', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'abs12', name_zh: 'ABS设立', name_en: 'ABS Setup', date: '2026-06-01', offset: 'T+0', duration_zh: '当日', duration_en: 'Same day', note_zh: '完成募集账户验资 | 全部募集资金划转至专项计划托管户', note_en: 'Fundraising account verification | All proceeds transferred to SPV custody account', check: false },
-  { id: 'abs13', name_zh: '签署认购协议', name_en: 'Sign Subscription Agreement', date: '2026-06-02', offset: 'T+1', duration_zh: '【四日内】', duration_en: '[Within 4 days]', note_zh: null, note_en: null, check: false },
-  { id: 'abs14', name_zh: 'SPVs完成股权转让工商变更登记', name_en: 'SPVs Equity Transfer Registration', date: '2026-06-02', offset: 'T+1', duration_zh: '【两日】', duration_en: '[Within 2 days]', note_zh: null, note_en: null, check: false },
+  {
+    "id": "ms1",
+    "name_zh": "封卷文件定稿",
+    "name_en": "Filing Docs Finalized",
+    "date": "2026-04-08",
+    "offset": "T-44",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "前置条件：【待定稿】SPA、OMA、奉贤土地出让披露口径、Loan Docs",
+    "note_en": "Pre-requisite: SPA, OMA, Fengxian land grant disclosure wording, and Loan Docs to be finalized",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": true
+  },
+  {
+    "id": "ms2",
+    "name_zh": "上传封卷材料",
+    "name_en": "Upload Filing Materials",
+    "date": "2026-04-10",
+    "offset": "T-42",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": true
+  },
+  {
+    "id": "ms3",
+    "name_zh": "取得无异议函",
+    "name_en": "Obtain No-objection Letter",
+    "date": "2026-05-12",
+    "offset": "T-23",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": true
+  },
+  {
+    "id": "ms4",
+    "name_zh": "ESR 内部确认SPA条款",
+    "name_en": "ESR Internal Confirmation of SPA Terms",
+    "date": "2026-05-19",
+    "offset": "T-18",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": true
+  },
+  {
+    "id": "ms5",
+    "name_zh": "发行前备案文件完成定稿",
+    "name_en": "Pre-issuance Filing Docs Finalized",
+    "date": "2026-05-29",
+    "offset": "T-10",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": true
+  },
+  {
+    "id": "ms6",
+    "name_zh": "文件传签完成",
+    "name_en": "Docs Signed Off",
+    "date": "2026-06-03",
+    "offset": "T-7",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms7",
+    "name_zh": "提交发行前备案",
+    "name_en": "Submit Pre-issuance Filing",
+    "date": "2026-06-03",
+    "offset": "T-7",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": "全套发行前备案材料定稿用印",
+    "note_en": "Full set of pre-issuance filing materials finalized and sealed",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms8",
+    "name_zh": "发行前备案通过",
+    "name_en": "Pre-issuance Filing Approved",
+    "date": "2026-06-05",
+    "offset": "T-5",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms9",
+    "name_zh": "协议定价日",
+    "name_en": "Pricing Date",
+    "date": "2026-06-08",
+    "offset": "T-4",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms10",
+    "name_zh": "缴款通知书",
+    "name_en": "Payment Notice",
+    "date": "2026-06-09",
+    "offset": "T-3",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms11",
+    "name_zh": "投资人完成缴款",
+    "name_en": "Investors Complete Payment",
+    "date": "2026-06-10",
+    "offset": "T-2",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms12",
+    "name_zh": "ABS设立",
+    "name_en": "ABS Setup",
+    "date": "2026-06-11",
+    "offset": "T+0",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "资金流向：全部募集资金划转至专项计划托管户 | 完成募集账户验资",
+    "note_en": "Fund flow: 全部募集资金划转至专项计划托管户 | Fundraising account verification completed",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms13",
+    "name_zh": "签署认购协议",
+    "name_en": "Sign Subscription Agreement",
+    "date": "2026-06-12",
+    "offset": "T+1",
+    "duration_zh": "【四日内】",
+    "duration_en": "[Within 4 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms14",
+    "name_zh": "SPVs完成股权转让工商变更登记",
+    "name_en": "SPVs Complete Equity Transfer Registration",
+    "date": "2026-06-12",
+    "offset": "T+1",
+    "duration_zh": "【两日】",
+    "duration_en": "[Within 2 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms15",
+    "name_zh": "ABS向原始权益人支付SPV股转价款\n（即实缴注册资金10万元）",
+    "name_en": "ABS Pays SPV Equity Transfer Consideration to Original Rights Holder (RMB 100k paid-in capital)",
+    "date": "2026-06-16",
+    "offset": "T+3",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "资金流向：专项计划支付10万至原始权益人",
+    "note_en": "Fund flow: Special plan pays RMB100k to original rights holder",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms16",
+    "name_zh": "ABS以募集资金向SPVs增资、发放股东借款",
+    "name_en": "ABS Injects Capital into SPVs and Provides Shareholder Loans",
+    "date": "2026-06-16",
+    "offset": "T+3",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "资金流向：ABS向SPVs账户划转增资款及股东借款",
+    "note_en": "Fund flow: ABS transfers capital injection and shareholder loan proceeds to SPV accounts",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms17",
+    "name_zh": "进行太仓和昆山项目公司股权转让工商变更、章证照交割、董监高委派",
+    "name_en": "Complete Taicang/Kunshan Equity Transfer Registration, License/Seal Handover, and Governance Appointment",
+    "date": "2026-06-17",
+    "offset": "T+4",
+    "duration_zh": "【三日】",
+    "duration_en": "[Within 3 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms18",
+    "name_zh": "进行项目公司及资产的二次抵押登记",
+    "name_en": "Complete Second Mortgage Registration for Project Companies and Assets",
+    "date": "2026-06-19",
+    "offset": "T+6",
+    "duration_zh": "【七日】",
+    "duration_en": "[Within 7 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms19",
+    "name_zh": "贷款银行确认完成并购贷提取条件",
+    "name_en": "Lending Bank Confirms M&A Loan Drawdown Conditions Met",
+    "date": "2026-06-30",
+    "offset": "T+13",
+    "duration_zh": "【三日】",
+    "duration_en": "[Within 3 days]",
+    "note_zh": "项目公司股转变更登记完成，二押登记完成",
+    "note_en": "Project company equity transfer registration and second mortgage registration completed",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms20",
+    "name_zh": "用ABS募集资金偿还存量银行经营性物业贷款",
+    "name_en": "Repay Existing Bank Operating Property Loan with ABS Proceeds",
+    "date": "2026-07-06",
+    "offset": "T+17",
+    "duration_zh": "【两日】",
+    "duration_en": "[Within 2 days]",
+    "note_zh": "资金流向：银行受托支付给前手银行",
+    "note_en": "Fund flow: Bank entrusted payment to previous lender",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms21",
+    "name_zh": "完成项目交割审计",
+    "name_en": "Complete Project Closing Audit",
+    "date": "2026-07-02",
+    "offset": "T+15",
+    "duration_zh": "【十五日】",
+    "duration_en": "[Within 15 days]",
+    "note_zh": "假设3周完成，根据与海之信沟通，交割审计预计2周内可提供初稿",
+    "note_en": "Assumes 3-week completion; based on discussion with Haizhixin, initial closing audit draft expected within 2 weeks",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "ms22",
+    "name_zh": "SPVs及贷款银行向景顺及SPV共管账户支付转价款，景顺方和ESR的股转价款等额留在SPV共管户上",
+    "name_en": "SPVs and Lenders Pay Transfer Consideration to Invesco/SPV Escrow; Invesco and ESR Consideration Remains in SPV Escrow",
+    "date": "2026-07-09",
+    "offset": "T+20",
+    "duration_zh": "【两日】",
+    "duration_en": "[Within 2 days]",
+    "note_zh": "资金流向：景顺的价款直接支付；\nESR的价款打入ESR与ABS/SPV共管账户 | 交割审计完成",
+    "note_en": "Fund flow: Invesco consideration paid directly; ESR consideration paid into ESR and ABS/SPV co-controlled account | Closing audit completed",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  }
 ];
 
 const FUNDFLOWS = [
-  { id: 'ff1', name_zh: 'Lux 资金到位', name_en: 'Lux Funding Ready', date: '2026-04-02', offset: 'T-39', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
-  { id: 'ff2', name_zh: 'Lux 资金打出', name_en: 'Lux Funding Wire Out', date: '2026-05-14', offset: 'T-13', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
-  { id: 'ff3', name_zh: 'Lux 资金抵达 Ruifu', name_en: 'Lux Funding Arrives at Ruifu', date: '2026-05-15', offset: 'T-12', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: true },
-  { id: 'ff4', name_zh: 'Ruifu 资金静置期', name_en: 'Ruifu On-hold Period', date: '2026-05-20', offset: 'T-9', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'ff5', name_zh: 'AML Greenlight', name_en: 'AML Greenlight', date: '2026-05-27', offset: 'T-4', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'ff6', name_zh: 'Ruifu USD 转 RMB', name_en: 'Ruifu USD to RMB', date: '2026-05-27', offset: 'T-4', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
-  { id: 'ff7', name_zh: '完成 ABS 缴款', name_en: 'Complete ABS Payment', date: '2026-06-01', offset: 'T+1', duration_zh: null, duration_en: null, note_zh: '前置条件：增资完成', note_en: 'Pre-requisite: Capital increase completed', check: false },
-  { id: 'ff8', name_zh: '和深圳金融局开始沟通减资事宜', name_en: 'Discuss Capital Reduction with Shenzhen Financial Bureau', date: '2026-06-29', offset: 'T+20', duration_zh: null, duration_en: null, note_zh: null, note_en: null, check: false },
+  {
+    "id": "ff1",
+    "name_zh": "Lux 资金到位",
+    "name_en": "Lux Funding Ready",
+    "date": "2026-04-02",
+    "offset": "T-47",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": true
+  },
+  {
+    "id": "ff2",
+    "name_zh": "Lux 资金打出",
+    "name_en": "Lux Funding Wire Out",
+    "date": "2026-05-14",
+    "offset": "T-21",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": true
+  },
+  {
+    "id": "ff3",
+    "name_zh": "Lux 资金抵达 Ruifu",
+    "name_en": "Lux Funding Arrives at Ruifu",
+    "date": "2026-05-15",
+    "offset": "T-20",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": true
+  },
+  {
+    "id": "ff4",
+    "name_zh": "Ruifu 资金静置期",
+    "name_en": "Ruifu Funding On-hold Period",
+    "date": "2026-05-20",
+    "offset": "T-17",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": true
+  },
+  {
+    "id": "ff5",
+    "name_zh": "AML Greenlight",
+    "name_en": "AML Greenlight",
+    "date": "2026-06-08",
+    "offset": "T-4",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": false
+  },
+  {
+    "id": "ff6",
+    "name_zh": "Ruifu USD 转 RMB",
+    "name_en": "Ruifu USD to RMB",
+    "date": "2026-06-08",
+    "offset": "T-4",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": false
+  },
+  {
+    "id": "ff7",
+    "name_zh": "完成 ABS 缴款",
+    "name_en": "Complete ABS Payment",
+    "date": "2026-06-10",
+    "offset": "T-2",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": "前置条件：增资完成",
+    "note_en": "Pre-requisite: capital increase completed",
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": false
+  },
+  {
+    "id": "ff8",
+    "name_zh": "和深圳金融局开始沟通减资事宜",
+    "name_en": "Start Capital Reduction Discussion with Shenzhen Financial Bureau",
+    "date": "2026-07-10",
+    "offset": "T+20",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "IRE Funding",
+    "category_en": "IRE Funding",
+    "check": false
+  }
 ];
 
 const WORKFLOWS = [
-  { id: 'wf1', name_zh: '提前Accure Rental Guarantee', name_en: 'Advance Accure Rental Guarantee', date: '2026-05-29', offset: 'T-1', duration_zh: '当日', duration_en: 'Same day', category_zh: 'IRE 工作流', category_en: 'IRE Workflow', note_zh: 'Ongoing，需要在ABS成立前完成', note_en: 'Ongoing, needs to be completed before ABS setup', check: false },
-  { id: 'wf2', name_zh: '和奉贤规自局沟通签约', name_en: 'Coordinate with Fengxian Planning Bureau', date: '2026-05-22', offset: 'T-6', duration_zh: '当日', duration_en: 'Same day', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: null, note_en: null, check: false },
-  { id: 'wf3', name_zh: '签订土地出让合同时间', name_en: 'Execute Land Grant Contract', date: '2026-05-29', offset: 'T-1', duration_zh: '一周', duration_en: '1 week', category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '交易确定性高后，ABS设立日（即为交割日）前', note_en: 'After transaction certainty, before ABS setup date (closing date)', check: false },
-  { id: 'wf4', name_zh: '签署土地出让合同', name_en: 'Sign Land Grant Contract', date: '2026-06-09', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '太仓和昆山完成转让', note_en: 'Taicang and Kunshan transfers completed', check: false },
-  { id: 'wf5', name_zh: '进行奉贤项目公司股权转让', name_en: 'Fengxian Project Company Equity Transfer', date: '2026-06-09', offset: 'T+6', duration_zh: null, duration_en: null, category_zh: '转让限制', category_en: 'Transfer Restriction', note_zh: '签署土地出让合同', note_en: 'After signing land grant contract', check: false },
-  { id: 'wf6', name_zh: '提前和广发沟通解除抵押', name_en: 'Coordinate Mortgage Release with Guangfa', date: '2026-06-02', offset: 'T+1', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
-  { id: 'wf7', name_zh: '请广发发起解除抵押流程', name_en: 'Guangfa Initiates Mortgage Release', date: '2026-06-29', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '收到所有equity', note_en: 'After receiving all equity proceeds', check: false },
-  { id: 'wf8', name_zh: '完成市不动产中心数据入库', name_en: 'Complete Real Estate Center Data Filing', date: '2026-06-29', offset: 'T+20', duration_zh: null, duration_en: null, category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: null, note_en: null, check: false },
-  { id: 'wf9', name_zh: '银行到不动产中心解除抵押', name_en: 'Bank Completes Mortgage Release', date: '2026-07-06', offset: 'T+25', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '【待确定解除抵押前提】', note_en: '[Mortgage release prerequisites TBD]', check: false },
-  { id: 'wf10', name_zh: '景顺到不动产中心办理两证合一', name_en: 'Invesco Processes Two Certificates Consolidation', date: '2026-07-13', offset: 'T+30', duration_zh: '一周', duration_en: '1 week', category_zh: '两证合一', category_en: 'Two Certificates in One', note_zh: '解除抵押，必须在08/18/2026 资金外转之前完成', note_en: 'Mortgage must be released before outbound remittance on 08/18/2026', check: false },
+  {
+    "id": "wf1",
+    "name_zh": "提前Accure Rental Guarantee",
+    "name_en": "Advance Accure Rental Guarantee",
+    "date": "2026-06-10",
+    "offset": "T-1",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "Ongoing，需要在ABS成立前完成",
+    "note_en": "Ongoing; must be completed before ABS setup",
+    "category_zh": "IRE 工作流",
+    "category_en": "IRE Workflow",
+    "check": false
+  },
+  {
+    "id": "wf2",
+    "name_zh": "和奉贤规自局沟通签约",
+    "name_en": "Coordinate Signing with Fengxian Planning Bureau",
+    "date": "2026-06-03",
+    "offset": "T-6",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "转让限制",
+    "category_en": "Transfer Restriction",
+    "check": false
+  },
+  {
+    "id": "wf3",
+    "name_zh": "签订土地出让合同时间",
+    "name_en": "Land Grant Contract Signing Timing",
+    "date": "2026-06-05",
+    "offset": "T-4",
+    "duration_zh": "一周",
+    "duration_en": "1 week",
+    "note_zh": "交易确定性高后，ABS设立日（即为交割日）前",
+    "note_en": "After transaction certainty is high; before ABS setup date (closing date)",
+    "category_zh": "转让限制",
+    "category_en": "Transfer Restriction",
+    "check": false
+  },
+  {
+    "id": "wf4",
+    "name_zh": "进行奉贤项目公司股权转让",
+    "name_en": "Fengxian Project Company Equity Transfer",
+    "date": "2026-06-22",
+    "offset": "T+6",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": "签署土地出让合同",
+    "note_en": "After signing the land grant contract",
+    "category_zh": "转让限制",
+    "category_en": "Transfer Restriction",
+    "check": false
+  },
+  {
+    "id": "wf5",
+    "name_zh": "提前和广发沟通解除抵押",
+    "name_en": "Coordinate Mortgage Release with Guangfa in Advance",
+    "date": "2026-06-12",
+    "offset": "T+1",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "两证合一",
+    "category_en": "Two Certificates in One",
+    "check": false
+  },
+  {
+    "id": "wf6",
+    "name_zh": "请广发发起解除抵押流程",
+    "name_en": "Ask Guangfa to Initiate Mortgage Release",
+    "date": "2026-07-10",
+    "offset": "T+20",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": "收到所有equity",
+    "note_en": "After receiving all equity proceeds",
+    "category_zh": "两证合一",
+    "category_en": "Two Certificates in One",
+    "check": false
+  },
+  {
+    "id": "wf7",
+    "name_zh": "完成市不动产中心数据入库",
+    "name_en": "Complete Municipal Real Estate Center Data Filing",
+    "date": "2026-07-10",
+    "offset": "T+20",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "两证合一",
+    "category_en": "Two Certificates in One",
+    "check": false
+  },
+  {
+    "id": "wf8",
+    "name_zh": "银行到不动产中心解除抵押",
+    "name_en": "Bank Completes Mortgage Release at Real Estate Center",
+    "date": "2026-07-17",
+    "offset": "T+25",
+    "duration_zh": "一周",
+    "duration_en": "1 week",
+    "note_zh": "【待确定解除抵押前提】",
+    "note_en": "[Mortgage release prerequisites TBD]",
+    "category_zh": "两证合一",
+    "category_en": "Two Certificates in One",
+    "check": false
+  },
+  {
+    "id": "wf9",
+    "name_zh": "景顺到不动产中心办理两证合一",
+    "name_en": "Invesco Processes Two Certificates Consolidation at Real Estate Center",
+    "date": "2026-07-24",
+    "offset": "T+30",
+    "duration_zh": "一周",
+    "duration_en": "1 week",
+    "note_zh": "解除抵押，必须在08/18/2026 资金外转之前完成",
+    "note_en": "Mortgage release must be completed before outbound remittance on 08/18/2026",
+    "category_zh": "两证合一",
+    "category_en": "Two Certificates in One",
+    "check": false
+  },
+  {
+    "id": "wf10",
+    "name_zh": "签署土地出让合同",
+    "name_en": "Sign Land Grant Contract",
+    "date": "2026-06-19",
+    "offset": "T+6",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "太仓和昆山完成转让",
+    "note_en": "Taicang and Kunshan transfers completed",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "wf11",
+    "name_zh": "进行奉贤项目公司股权转让",
+    "name_en": "Fengxian Project Company Equity Transfer",
+    "date": "2026-06-19",
+    "offset": "T+6",
+    "duration_zh": "【三日】",
+    "duration_en": "[Within 3 days]",
+    "note_zh": "签署土地出让合同",
+    "note_en": "After signing the land grant contract",
+    "category_zh": "ABS Setup",
+    "category_en": "ABS Setup",
+    "check": false
+  },
+  {
+    "id": "wf12",
+    "name_zh": "SPV向主管税局提起股权转让所得税扣缴申报",
+    "name_en": "SPV Files Equity Transfer Income Tax Withholding Declaration",
+    "date": "2026-07-09",
+    "offset": "T+20",
+    "duration_zh": "【二十日】",
+    "duration_en": "[Within 20 days]",
+    "note_zh": "资金流向：税款由交易对价中扣除，由SPV代扣代缴",
+    "note_en": "Fund flow: Taxes deducted from transaction consideration and withheld/paid by SPV",
+    "category_zh": "ESR方外转内相关流程",
+    "category_en": "ESR Outbound/Internal Conversion Process",
+    "check": false
+  },
+  {
+    "id": "wf13",
+    "name_zh": "项目公司银行办理外方股东信息变更登记",
+    "name_en": "Project Company Bank Registers Foreign Shareholder Information Change",
+    "date": "2026-07-09",
+    "offset": "T+20",
+    "duration_zh": "【二十日】",
+    "duration_en": "[Within 20 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ESR方外转内相关流程",
+    "category_en": "ESR Outbound/Internal Conversion Process",
+    "check": false
+  },
+  {
+    "id": "wf14",
+    "name_zh": "买方银行外管支付备案登记",
+    "name_en": "Buyer Bank Completes SAFE Payment Filing",
+    "date": "2026-07-09",
+    "offset": "T+20",
+    "duration_zh": "【二十日】",
+    "duration_en": "[Within 20 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ESR方外转内相关流程",
+    "category_en": "ESR Outbound/Internal Conversion Process",
+    "check": false
+  },
+  {
+    "id": "wf15",
+    "name_zh": "解除账户共管，SPV购汇，支付给ESR方境外账户",
+    "name_en": "Release Account Co-control; SPV Purchases FX and Pays ESR Offshore Account",
+    "date": "2026-08-06",
+    "offset": "T+40",
+    "duration_zh": "【两日】",
+    "duration_en": "[Within 2 days]",
+    "note_zh": "资金流向：获得外管批准",
+    "note_en": "Fund flow: SAFE approval obtained",
+    "category_zh": "ESR方外转内相关流程",
+    "category_en": "ESR Outbound/Internal Conversion Process",
+    "check": false
+  },
+  {
+    "id": "wf16",
+    "name_zh": "解除SPV共管，资金释放至景顺及ESR",
+    "name_en": "Release SPV Co-control and Release Funds to Invesco and ESR",
+    "date": "2026-08-06",
+    "offset": "T+40",
+    "duration_zh": null,
+    "duration_en": null,
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ESR方外转内相关流程",
+    "category_en": "ESR Outbound/Internal Conversion Process",
+    "check": false
+  }
 ];
 
 // ─── STATE ─────────────────────────────────────────────────────────────
 let lang = 'zh';
 let currentFilters = new Set(['milestone','fundflow','workflow']);
-let calYear = 2026, calMonth = 3; // 0-indexed: 3 = April
+let calYear = 2026, calMonth = 5; // 0-indexed: 5 = June
 
 function getAllItems() {
   return [
@@ -325,8 +959,7 @@ function normalizeTaskName(name) {
 }
 
 function getSharedTaskKey(item) {
-  const baseName = item.name_en || item.name_zh || item.id;
-  return `${item.stream}::${normalizeTaskName(baseName)}`;
+  return item.id;
 }
 
 const sharedChecked = {};
@@ -364,12 +997,12 @@ function daysDiff(dateStr) {
 const T = {
   zh: {
     title:'Navigator · 交易时间表',
-    sub:'整体交易时间表 · 2026年4月-7月',
+    sub:'整体交易时间表 · 2026年4月-8月',
     thisWeek:'本周任务',
     weekEmpty:'本周暂无任务',
     weekCount: c => `本周共 ${c} 项任务`,
     progress:'整体进度',
-    km:'ABS 设立',
+    km:'关键里程碑',
     ff:'资金流',
     done:'已完成',
     total:'共',
@@ -379,15 +1012,15 @@ const T = {
     holidays:'节假日提示',
     lgDone:'已完成',
     lgToday:'今天',
-    lgKm:'ABS 设立',
+    lgKm:'关键里程碑',
     lgFf:'资金流',
-    lgWf:'其它工作流',
+    lgWf:'工作流',
     lgDelayed:'已延误',
     delayed:'延误',
     tabAll:'全部',
-    tabKm:'ABS 设立',
+    tabKm:'关键里程碑',
     tabFf:'资金流',
-    tabWf:'其它工作流',
+    tabWf:'工作流',
     bd:'BD',
     duration:'周期',
     today:'今天',
@@ -398,12 +1031,12 @@ const T = {
   },
   en: {
     title:'Navigator · Transaction Timeline',
-    sub:'Overall Transaction Timeline · Apr-Jul 2026',
+    sub:'Overall Transaction Timeline · Apr-Aug 2026',
     thisWeek:'This Week',
     weekEmpty:'No tasks scheduled this week',
     weekCount: c => `${c} task${c===1?'':'s'} this week`,
     progress:'Overall Progress',
-    km:'ABS Setup',
+    km:'Key Milestones',
     ff:'Fund Flow',
     done:'Done',
     total:'Total',
@@ -413,15 +1046,15 @@ const T = {
     holidays:'Holiday Alerts',
     lgDone:'Completed',
     lgToday:'Today',
-    lgKm:'ABS Setup',
+    lgKm:'Key Milestones',
     lgFf:'Fund Flow',
-    lgWf:'Other Workflows',
+    lgWf:'Workflow',
     lgDelayed:'Delayed',
     delayed:'Delayed',
     tabAll:'All',
-    tabKm:'ABS Setup',
+    tabKm:'Key Milestones',
     tabFf:'Fund Flow',
-    tabWf:'Other Workflows',
+    tabWf:'Workflow',
     bd:'BD',
     duration:'Duration',
     today:'Today',
@@ -559,7 +1192,8 @@ function renderThisWeek() {
           ${item.duration_zh || item.duration_en ? `<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>` : ''}
           <span style="font-size:0.72rem;color:${delayed?'var(--holiday)':diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${formatShortDate(dateObj)} · ${t.daysLeft(diff)}</span>
           ${delayed ? `<span class="delayed-badge">⏰ ${t.delayed}</span>` : ''}
-                  </div>
+          ${item.check ? `<span class="check-badge">⚑ ${t.check}</span>` : ''}
+        </div>
         ${note ? `<div class="week-task-note">📌 ${note}</div>` : ''}
       </div>
     `;
@@ -570,12 +1204,14 @@ function renderThisWeek() {
 // ─── TIMELINE ─────────────────────────────────────────────────────────
 function filterTimeline(f) {
   if (f === 'all') {
-    currentFilters = new Set(['milestone','fundflow','workflow']);
+    const allSelected = currentFilters.size === 3;
+    currentFilters = allSelected ? new Set() : new Set(['milestone','fundflow','workflow']);
   } else {
-    currentFilters = new Set([f]);
+    if (currentFilters.has(f)) currentFilters.delete(f);
+    else currentFilters.add(f);
   }
 
-  document.getElementById('tab-all').classList.toggle('active', f === 'all');
+  document.getElementById('tab-all').classList.toggle('active', currentFilters.size === 3);
   ['milestone','fundflow','workflow'].forEach(x => {
     document.getElementById('tab-'+x).classList.toggle('active', currentFilters.has(x));
   });
@@ -643,7 +1279,8 @@ function renderTimeline() {
           ${item.duration_zh || item.duration_en?`<span class="step-tag group">${t.duration} · ${lang==='zh' ? item.duration_zh : item.duration_en}</span>`:''}
           <span style="font-size:0.72rem;color:${delayed?'var(--holiday)':diff>0?'var(--pending)':diff===0?'var(--accent)':'var(--upcoming)'};font-weight:600;">${daysLabel}</span>
           ${delayed?`<span class="delayed-badge">⏰ ${t.delayed}</span>`:''}
-                  </div>
+          ${item.check?`<span class="check-badge">⚑ ${t.check}</span>`:''}
+        </div>
         ${note?`<div class="step-note">📌 ${note}</div>`:''}
       </div>
       <input type="checkbox" class="step-checkbox" ${isDone?'checked':''} onclick="toggleCheck('${item.id}',this)" title="${lang==='zh'?'标记完成':'Mark complete'}">
@@ -806,7 +1443,8 @@ function renderUpcoming() {
         <div class="upcoming-name">${name}</div>
         <div class="upcoming-stream" style="color:${color};font-weight:600;">${getStreamLabel(item)} · ${dLabel}</div>
       </div>
-          `;
+      ${item.check?`<span style="font-size:0.75rem;color:var(--fundflow-color);">⚑</span>`:''}
+    `;
     container.appendChild(div);
   });
 }
