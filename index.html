@@ -733,8 +733,8 @@ const WORKFLOWS = [
     "id": "wf2",
     "name_zh": "和奉贤规自局沟通签约",
     "name_en": "Coordinate Signing with Fengxian Planning Bureau",
-    "date": "2026-06-08",
-    "offset": "T-6",
+    "date": "2026-06-26",
+    "offset": "T7",
     "duration_zh": "当日",
     "duration_en": "Same day",
     "note_zh": null,
@@ -747,8 +747,8 @@ const WORKFLOWS = [
     "id": "wf3",
     "name_zh": "签订土地出让合同时间",
     "name_en": "Land Grant Contract Signing Timing",
-    "date": "2026-06-10",
-    "offset": "T-4",
+    "date": "2026-07-07",
+    "offset": "T14",
     "duration_zh": "一周",
     "duration_en": "1 week",
     "note_zh": "交易确定性高后，ABS设立日（即为交割日）前",
@@ -761,8 +761,8 @@ const WORKFLOWS = [
     "id": "wf4",
     "name_zh": "进行奉贤项目公司股权转让",
     "name_en": "Fengxian Project Company Equity Transfer",
-    "date": "2026-06-25",
-    "offset": "T+6",
+    "date": "2026-07-08",
+    "offset": "T+15",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": "签署土地出让合同",
@@ -951,6 +951,11 @@ const ITEM_SOURCE_INDEX = Object.fromEntries([
   ...WORKFLOWS.map(item => [item.id, item])
 ]);
 const ITEM_INDEX = ITEM_SOURCE_INDEX;
+const EXCEL_COMPLETED_IDS = new Set([
+  'ff1','ff2','ff3','ff4','ff5','ff6','ff7',
+  'wf1',
+  'ms1','ms2','ms3','ms4','ms5','ms6','ms7','ms8','ms9','ms10','ms11','ms12'
+]);
 
 function loadBottleneckIds() {
   try {
@@ -1002,6 +1007,14 @@ function applyDatesFromWorkbook(datesById) {
   });
 }
 
+function applyStatusesFromWorkbook(statusesById) {
+  Object.entries(statusesById || {}).forEach(([id, value]) => {
+    const item = ITEM_SOURCE_INDEX[id];
+    if (!item) return;
+    sharedChecked[getSharedTaskKey(item)] = String(value || '').trim().toLowerCase() === 'completed';
+  });
+}
+
 function setBridgeStatus(message, level) {
   const el = document.getElementById('bridge-status');
   if (!el) return;
@@ -1018,6 +1031,7 @@ function setSaveStatus(id, message, level) {
 
 function applyTimelineResponse(data, statusPrefix) {
   applyDatesFromWorkbook(data && data.datesById);
+  applyStatusesFromWorkbook(data && data.statusesById);
   workbookLastModified = data && data.workbookLastModified ? data.workbookLastModified : workbookLastModified;
   const stamp = workbookLastModified ? new Date(workbookLastModified).toLocaleString() : '';
   setBridgeStatus(statusPrefix ? `${statusPrefix}${stamp ? ' · ' + stamp : ''}` : (stamp ? `Excel synced · ${stamp}` : 'Excel synced'), 'ok');
@@ -1121,7 +1135,7 @@ function getSharedTaskKey(item) {
 const sharedChecked = {};
 getAllItems().forEach(item => {
   const key = getSharedTaskKey(item);
-  sharedChecked[key] = sharedChecked[key] || !!item.check;
+  sharedChecked[key] = sharedChecked[key] || EXCEL_COMPLETED_IDS.has(item.id) || !!item.check;
 });
 
 function isChecked(item) {
