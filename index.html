@@ -33,6 +33,13 @@
   .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.02em; }
   .header-left p { font-size: 0.85rem; opacity: 0.75; margin-top: 3px; }
   .header-right { display: flex; align-items: center; gap: 12px; }
+  .refresh-btn { border: 1px solid rgba(255,255,255,0.45); background: rgba(255,255,255,0.14); color: white; border-radius: 20px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
+  .refresh-btn:hover { background: rgba(255,255,255,0.24); }
+  .refresh-btn:disabled { cursor: wait; opacity: 0.65; }
+  .bridge-status { min-width: 138px; color: rgba(255,255,255,0.84); font-size: 0.72rem; line-height: 1.2; text-align: right; }
+  .bridge-status.ok { color: #bbf7d0; }
+  .bridge-status.warn { color: #fde68a; }
+  .bridge-status.error { color: #fecaca; }
   .lang-toggle { display: flex; background: rgba(255,255,255,0.15); border-radius: 20px; overflow: hidden; }
   .lang-btn { padding: 6px 16px; border: none; background: transparent; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s; }
   .lang-btn.active { background: rgba(255,255,255,0.3); }
@@ -55,6 +62,7 @@
   .week-item { display: flex; gap: 12px; padding: 12px; border: 1px solid var(--border); background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border-radius: 10px; }
   .week-item.today { border-color: var(--accent); background: #fffbf0; }
   .week-item.done { opacity: 0.72; }
+  .week-item.bottleneck-item { border-color: #f97316; background: #fff7ed; }
   .week-date-box { min-width: 54px; border-radius: 8px; padding: 8px 6px; text-align: center; background: var(--bg); border: 1px solid var(--border); }
   .week-date-month { font-size: 0.68rem; color: var(--text-light); font-weight: 700; text-transform: uppercase; }
   .week-date-day { font-size: 1.1rem; color: var(--primary); font-weight: 700; line-height: 1.1; margin-top: 2px; }
@@ -81,6 +89,7 @@
   .timeline-spine { position: absolute; left: 26px; top: 0; bottom: 0; width: 2px; background: var(--border); }
   .timeline-item { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; position: relative; cursor: pointer; }
   .timeline-item:last-child { margin-bottom: 0; }
+  .timeline-item.bottleneck-item .step-content { border-color: #f97316; background: #fff7ed; }
   .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; z-index: 1; border: 3px solid white; box-shadow: 0 0 0 2px var(--border); transition: transform 0.2s; }
   .timeline-item:hover .step-icon { transform: scale(1.15); }
   .step-icon.done { background: var(--done); color: white; box-shadow: 0 0 0 2px var(--done); }
@@ -108,6 +117,17 @@
   .step-note { font-size: 0.78rem; color: var(--text-light); margin-top: 4px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--border); }
   .check-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7rem; color: var(--fundflow-color); font-weight: 600; }
   .delayed-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--holiday); font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 10px; }
+  .bottleneck-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: #c2410c; font-weight: 800; background: #ffedd5; padding: 2px 8px; border-radius: 10px; }
+  .step-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .date-edit { height: 28px; border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; color: var(--text); background: white; font-size: 0.76rem; font-family: inherit; }
+  .date-save-btn, .flag-btn { height: 28px; border: 1px solid var(--border); border-radius: 6px; padding: 0 9px; background: white; color: var(--text); font-size: 0.74rem; font-weight: 700; cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s; }
+  .date-save-btn:hover, .flag-btn:hover { border-color: #94a3b8; background: #f8fafc; }
+  .date-save-btn:disabled { cursor: wait; opacity: 0.6; }
+  .flag-btn.active { border-color: #f97316; background: #ffedd5; color: #c2410c; }
+  .flag-btn.hidden-action { display: none; }
+  .save-status { min-height: 16px; font-size: 0.72rem; color: var(--text-light); }
+  .save-status.ok { color: var(--done); }
+  .save-status.error { color: var(--holiday); }
 
   /* Status checkbox */
   .step-checkbox { appearance: none; width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.2s; }
@@ -171,6 +191,8 @@
     <p id="h-sub">Overall Transaction Timeline · Apr-Aug 2026</p>
   </div>
   <div class="header-right">
+    <div class="bridge-status warn" id="bridge-status">Bridge not checked</div>
+    <button class="refresh-btn" onclick="refreshFromExcel()" id="refresh-btn">Refresh Excel</button>
     <div class="today-badge" id="today-badge"></div>
     <div class="lang-toggle">
       <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
@@ -279,14 +301,14 @@ const HOLIDAYS = [
   }
 ];
 
-// Data from Excel - Overall Transaction Timeline (updated from 20260601 timetable)
+// Data from Excel - Overall Transaction Timeline (updated from 20260622 timetable)
 const MILESTONES = [
   {
     "id": "ms1",
     "name_zh": "封卷文件定稿",
     "name_en": "Filing Docs Finalized",
     "date": "2026-04-08",
-    "offset": "T-44",
+    "offset": "T-47",
     "duration_zh": "当日",
     "duration_en": "Same day",
     "note_zh": "前置条件：【待定稿】SPA、OMA、奉贤土地出让披露口径、Loan Docs",
@@ -300,7 +322,7 @@ const MILESTONES = [
     "name_zh": "上传封卷材料",
     "name_en": "Upload Filing Materials",
     "date": "2026-04-10",
-    "offset": "T-42",
+    "offset": "T-45",
     "duration_zh": "当日",
     "duration_en": "Same day",
     "note_zh": null,
@@ -314,7 +336,7 @@ const MILESTONES = [
     "name_zh": "取得无异议函",
     "name_en": "Obtain No-objection Letter",
     "date": "2026-05-12",
-    "offset": "T-23",
+    "offset": "T-26",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -328,7 +350,7 @@ const MILESTONES = [
     "name_zh": "ESR 内部确认SPA条款",
     "name_en": "ESR Internal Confirmation of SPA Terms",
     "date": "2026-05-19",
-    "offset": "T-18",
+    "offset": "T-21",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -342,7 +364,7 @@ const MILESTONES = [
     "name_zh": "发行前备案文件完成定稿",
     "name_en": "Pre-issuance Filing Docs Finalized",
     "date": "2026-05-29",
-    "offset": "T-10",
+    "offset": "T-13",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -355,8 +377,8 @@ const MILESTONES = [
     "id": "ms6",
     "name_zh": "文件传签完成",
     "name_en": "Docs Signed Off",
-    "date": "2026-06-03",
-    "offset": "T-7",
+    "date": "2026-06-05",
+    "offset": "T-8",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -369,8 +391,8 @@ const MILESTONES = [
     "id": "ms7",
     "name_zh": "提交发行前备案",
     "name_en": "Submit Pre-issuance Filing",
-    "date": "2026-06-03",
-    "offset": "T-7",
+    "date": "2026-06-05",
+    "offset": "T-8",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": "全套发行前备案材料定稿用印",
@@ -383,8 +405,8 @@ const MILESTONES = [
     "id": "ms8",
     "name_zh": "发行前备案通过",
     "name_en": "Pre-issuance Filing Approved",
-    "date": "2026-06-05",
-    "offset": "T-5",
+    "date": "2026-06-11",
+    "offset": "T-4",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -397,8 +419,8 @@ const MILESTONES = [
     "id": "ms9",
     "name_zh": "协议定价日",
     "name_en": "Pricing Date",
-    "date": "2026-06-08",
-    "offset": "T-4",
+    "date": "2026-06-12",
+    "offset": "T-3",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -411,8 +433,8 @@ const MILESTONES = [
     "id": "ms10",
     "name_zh": "缴款通知书",
     "name_en": "Payment Notice",
-    "date": "2026-06-09",
-    "offset": "T-3",
+    "date": "2026-06-15",
+    "offset": "T-2",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -425,8 +447,8 @@ const MILESTONES = [
     "id": "ms11",
     "name_zh": "投资人完成缴款",
     "name_en": "Investors Complete Payment",
-    "date": "2026-06-10",
-    "offset": "T-2",
+    "date": "2026-06-16",
+    "offset": "T1",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -439,24 +461,24 @@ const MILESTONES = [
     "id": "ms12",
     "name_zh": "ABS设立",
     "name_en": "ABS Setup",
-    "date": "2026-06-11",
+    "date": "2026-06-16",
     "offset": "T+0",
     "duration_zh": "当日",
     "duration_en": "Same day",
     "note_zh": "资金流向：全部募集资金划转至专项计划托管户 | 完成募集账户验资",
-    "note_en": "Fund flow: 全部募集资金划转至专项计划托管户 | Fundraising account verification completed",
+    "note_en": "Fund flow: all fundraising proceeds transferred to the special plan custody account | Fundraising account verification completed",
     "category_zh": "ABS Setup",
     "category_en": "ABS Setup",
     "check": false
   },
   {
     "id": "ms13",
-    "name_zh": "签署认购协议",
-    "name_en": "Sign Subscription Agreement",
-    "date": "2026-06-12",
-    "offset": "T+1",
-    "duration_zh": "【四日内】",
-    "duration_en": "[Within 4 days]",
+    "name_zh": "SPVs完成股权转让工商变更登记",
+    "name_en": "SPVs Complete Equity Transfer Registration",
+    "date": "2026-06-30",
+    "offset": "T+10",
+    "duration_zh": "【五日】",
+    "duration_en": "[Within 5 days]",
     "note_zh": null,
     "note_en": null,
     "category_zh": "ABS Setup",
@@ -465,38 +487,24 @@ const MILESTONES = [
   },
   {
     "id": "ms14",
-    "name_zh": "SPVs完成股权转让工商变更登记",
-    "name_en": "SPVs Complete Equity Transfer Registration",
-    "date": "2026-06-12",
-    "offset": "T+1",
-    "duration_zh": "【两日】",
-    "duration_en": "[Within 2 days]",
-    "note_zh": null,
-    "note_en": null,
+    "name_zh": "ABS向原始权益人支付SPV股转价款（即实缴注册资金10万元）",
+    "name_en": "ABS Pays SPV Equity Transfer Consideration to Original Rights Holder (RMB 100k paid-in capital)",
+    "date": "2026-07-01",
+    "offset": "T+11",
+    "duration_zh": "当日",
+    "duration_en": "Same day",
+    "note_zh": "资金流向：专项计划支付10万至原始权益人",
+    "note_en": "Fund flow: special plan pays RMB100k to original rights holder",
     "category_zh": "ABS Setup",
     "category_en": "ABS Setup",
     "check": false
   },
   {
     "id": "ms15",
-    "name_zh": "ABS向原始权益人支付SPV股转价款\n（即实缴注册资金10万元）",
-    "name_en": "ABS Pays SPV Equity Transfer Consideration to Original Rights Holder (RMB 100k paid-in capital)",
-    "date": "2026-06-16",
-    "offset": "T+3",
-    "duration_zh": "当日",
-    "duration_en": "Same day",
-    "note_zh": "资金流向：专项计划支付10万至原始权益人",
-    "note_en": "Fund flow: Special plan pays RMB100k to original rights holder",
-    "category_zh": "ABS Setup",
-    "category_en": "ABS Setup",
-    "check": false
-  },
-  {
-    "id": "ms16",
     "name_zh": "ABS以募集资金向SPVs增资、发放股东借款",
     "name_en": "ABS Injects Capital into SPVs and Provides Shareholder Loans",
-    "date": "2026-06-16",
-    "offset": "T+3",
+    "date": "2026-07-01",
+    "offset": "T+11",
     "duration_zh": "当日",
     "duration_en": "Same day",
     "note_zh": "资金流向：ABS向SPVs账户划转增资款及股东借款",
@@ -506,13 +514,13 @@ const MILESTONES = [
     "check": false
   },
   {
-    "id": "ms17",
-    "name_zh": "进行太仓和昆山项目公司股权转让工商变更、章证照交割、董监高委派",
-    "name_en": "Complete Taicang/Kunshan Equity Transfer Registration, License/Seal Handover, and Governance Appointment",
-    "date": "2026-06-17",
-    "offset": "T+4",
-    "duration_zh": "【三日】",
-    "duration_en": "[Within 3 days]",
+    "id": "ms16",
+    "name_zh": "进行项目公司股权转让工商变更、章证照交割、董监高委派",
+    "name_en": "Complete Project Company Equity Transfer Registration, License/Seal Handover, and Governance Appointment",
+    "date": "2026-07-07",
+    "offset": "T+15",
+    "duration_zh": "【五日】",
+    "duration_en": "[Within 5 days]",
     "note_zh": null,
     "note_en": null,
     "category_zh": "ABS Setup",
@@ -520,11 +528,11 @@ const MILESTONES = [
     "check": false
   },
   {
-    "id": "ms18",
+    "id": "ms17",
     "name_zh": "进行项目公司及资产的二次抵押登记",
     "name_en": "Complete Second Mortgage Registration for Project Companies and Assets",
-    "date": "2026-06-19",
-    "offset": "T+6",
+    "date": "2026-07-16",
+    "offset": "T+22",
     "duration_zh": "【七日】",
     "duration_en": "[Within 7 days]",
     "note_zh": null,
@@ -534,11 +542,11 @@ const MILESTONES = [
     "check": false
   },
   {
-    "id": "ms19",
+    "id": "ms18",
     "name_zh": "贷款银行确认完成并购贷提取条件",
     "name_en": "Lending Bank Confirms M&A Loan Drawdown Conditions Met",
-    "date": "2026-06-30",
-    "offset": "T+13",
+    "date": "2026-07-17",
+    "offset": "T+23",
     "duration_zh": "【三日】",
     "duration_en": "[Within 3 days]",
     "note_zh": "项目公司股转变更登记完成，二押登记完成",
@@ -548,24 +556,24 @@ const MILESTONES = [
     "check": false
   },
   {
-    "id": "ms20",
+    "id": "ms19",
     "name_zh": "用ABS募集资金偿还存量银行经营性物业贷款",
     "name_en": "Repay Existing Bank Operating Property Loan with ABS Proceeds",
-    "date": "2026-07-06",
-    "offset": "T+17",
+    "date": "2026-07-20",
+    "offset": "T+24",
     "duration_zh": "【两日】",
     "duration_en": "[Within 2 days]",
     "note_zh": "资金流向：银行受托支付给前手银行",
-    "note_en": "Fund flow: Bank entrusted payment to previous lender",
+    "note_en": "Fund flow: bank entrusted payment to previous lender",
     "category_zh": "ABS Setup",
     "category_en": "ABS Setup",
     "check": false
   },
   {
-    "id": "ms21",
+    "id": "ms20",
     "name_zh": "完成项目交割审计",
     "name_en": "Complete Project Closing Audit",
-    "date": "2026-07-02",
+    "date": "2026-07-07",
     "offset": "T+15",
     "duration_zh": "【十五日】",
     "duration_en": "[Within 15 days]",
@@ -576,11 +584,11 @@ const MILESTONES = [
     "check": false
   },
   {
-    "id": "ms22",
+    "id": "ms21",
     "name_zh": "SPVs及贷款银行向景顺及SPV共管账户支付转价款，景顺方和ESR的股转价款等额留在SPV共管户上",
     "name_en": "SPVs and Lenders Pay Transfer Consideration to Invesco/SPV Escrow; Invesco and ESR Consideration Remains in SPV Escrow",
-    "date": "2026-07-09",
-    "offset": "T+20",
+    "date": "2026-07-21",
+    "offset": "T+25",
     "duration_zh": "【两日】",
     "duration_en": "[Within 2 days]",
     "note_zh": "资金流向：景顺的价款直接支付；\nESR的价款打入ESR与ABS/SPV共管账户 | 交割审计完成",
@@ -597,7 +605,7 @@ const FUNDFLOWS = [
     "name_zh": "Lux 资金到位",
     "name_en": "Lux Funding Ready",
     "date": "2026-04-02",
-    "offset": "T-47",
+    "offset": "T-50",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -611,7 +619,7 @@ const FUNDFLOWS = [
     "name_zh": "Lux 资金打出",
     "name_en": "Lux Funding Wire Out",
     "date": "2026-05-14",
-    "offset": "T-21",
+    "offset": "T-24",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -625,7 +633,7 @@ const FUNDFLOWS = [
     "name_zh": "Lux 资金抵达 Ruifu",
     "name_en": "Lux Funding Arrives at Ruifu",
     "date": "2026-05-15",
-    "offset": "T-20",
+    "offset": "T-23",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -639,7 +647,7 @@ const FUNDFLOWS = [
     "name_zh": "Ruifu 资金静置期",
     "name_en": "Ruifu Funding On-hold Period",
     "date": "2026-05-20",
-    "offset": "T-17",
+    "offset": "T-20",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -652,8 +660,8 @@ const FUNDFLOWS = [
     "id": "ff5",
     "name_zh": "AML Greenlight",
     "name_en": "AML Greenlight",
-    "date": "2026-06-08",
-    "offset": "T-4",
+    "date": "2026-06-10",
+    "offset": "T-5",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -666,8 +674,8 @@ const FUNDFLOWS = [
     "id": "ff6",
     "name_zh": "Ruifu USD 转 RMB",
     "name_en": "Ruifu USD to RMB",
-    "date": "2026-06-08",
-    "offset": "T-4",
+    "date": "2026-06-10",
+    "offset": "T-5",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": null,
@@ -680,8 +688,8 @@ const FUNDFLOWS = [
     "id": "ff7",
     "name_zh": "完成 ABS 缴款",
     "name_en": "Complete ABS Payment",
-    "date": "2026-06-10",
-    "offset": "T-2",
+    "date": "2026-06-16",
+    "offset": "T1",
     "duration_zh": null,
     "duration_en": null,
     "note_zh": "前置条件：增资完成",
@@ -694,7 +702,7 @@ const FUNDFLOWS = [
     "id": "ff8",
     "name_zh": "和深圳金融局开始沟通减资事宜",
     "name_en": "Start Capital Reduction Discussion with Shenzhen Financial Bureau",
-    "date": "2026-07-10",
+    "date": "2026-07-15",
     "offset": "T+20",
     "duration_zh": null,
     "duration_en": null,
@@ -712,11 +720,11 @@ const WORKFLOWS = [
     "name_zh": "提前Accure Rental Guarantee",
     "name_en": "Advance Accure Rental Guarantee",
     "date": "2026-06-10",
-    "offset": "T-1",
+    "offset": "T-4",
     "duration_zh": "当日",
     "duration_en": "Same day",
-    "note_zh": "Ongoing，需要在ABS成立前完成",
-    "note_en": "Ongoing; must be completed before ABS setup",
+    "note_zh": "Ongoing，在备案通过后book",
+    "note_en": "Ongoing; book after filing approval",
     "category_zh": "IRE 工作流",
     "category_en": "IRE Workflow",
     "check": false
@@ -725,7 +733,7 @@ const WORKFLOWS = [
     "id": "wf2",
     "name_zh": "和奉贤规自局沟通签约",
     "name_en": "Coordinate Signing with Fengxian Planning Bureau",
-    "date": "2026-06-03",
+    "date": "2026-06-08",
     "offset": "T-6",
     "duration_zh": "当日",
     "duration_en": "Same day",
@@ -739,7 +747,7 @@ const WORKFLOWS = [
     "id": "wf3",
     "name_zh": "签订土地出让合同时间",
     "name_en": "Land Grant Contract Signing Timing",
-    "date": "2026-06-05",
+    "date": "2026-06-10",
     "offset": "T-4",
     "duration_zh": "一周",
     "duration_en": "1 week",
@@ -753,7 +761,7 @@ const WORKFLOWS = [
     "id": "wf4",
     "name_zh": "进行奉贤项目公司股权转让",
     "name_en": "Fengxian Project Company Equity Transfer",
-    "date": "2026-06-22",
+    "date": "2026-06-25",
     "offset": "T+6",
     "duration_zh": null,
     "duration_en": null,
@@ -767,7 +775,7 @@ const WORKFLOWS = [
     "id": "wf5",
     "name_zh": "提前和广发沟通解除抵押",
     "name_en": "Coordinate Mortgage Release with Guangfa in Advance",
-    "date": "2026-06-12",
+    "date": "2026-06-17",
     "offset": "T+1",
     "duration_zh": null,
     "duration_en": null,
@@ -781,7 +789,7 @@ const WORKFLOWS = [
     "id": "wf6",
     "name_zh": "请广发发起解除抵押流程",
     "name_en": "Ask Guangfa to Initiate Mortgage Release",
-    "date": "2026-07-10",
+    "date": "2026-07-15",
     "offset": "T+20",
     "duration_zh": null,
     "duration_en": null,
@@ -795,7 +803,7 @@ const WORKFLOWS = [
     "id": "wf7",
     "name_zh": "完成市不动产中心数据入库",
     "name_en": "Complete Municipal Real Estate Center Data Filing",
-    "date": "2026-07-10",
+    "date": "2026-07-15",
     "offset": "T+20",
     "duration_zh": null,
     "duration_en": null,
@@ -809,7 +817,7 @@ const WORKFLOWS = [
     "id": "wf8",
     "name_zh": "银行到不动产中心解除抵押",
     "name_en": "Bank Completes Mortgage Release at Real Estate Center",
-    "date": "2026-07-17",
+    "date": "2026-07-22",
     "offset": "T+25",
     "duration_zh": "一周",
     "duration_en": "1 week",
@@ -823,7 +831,7 @@ const WORKFLOWS = [
     "id": "wf9",
     "name_zh": "景顺到不动产中心办理两证合一",
     "name_en": "Invesco Processes Two Certificates Consolidation at Real Estate Center",
-    "date": "2026-07-24",
+    "date": "2026-07-29",
     "offset": "T+30",
     "duration_zh": "一周",
     "duration_en": "1 week",
@@ -837,8 +845,8 @@ const WORKFLOWS = [
     "id": "wf10",
     "name_zh": "签署土地出让合同",
     "name_en": "Sign Land Grant Contract",
-    "date": "2026-06-19",
-    "offset": "T+6",
+    "date": "2026-07-06",
+    "offset": "T+14",
     "duration_zh": "当日",
     "duration_en": "Same day",
     "note_zh": "太仓和昆山完成转让",
@@ -849,23 +857,9 @@ const WORKFLOWS = [
   },
   {
     "id": "wf11",
-    "name_zh": "进行奉贤项目公司股权转让",
-    "name_en": "Fengxian Project Company Equity Transfer",
-    "date": "2026-06-19",
-    "offset": "T+6",
-    "duration_zh": "【三日】",
-    "duration_en": "[Within 3 days]",
-    "note_zh": "签署土地出让合同",
-    "note_en": "After signing the land grant contract",
-    "category_zh": "ABS Setup",
-    "category_en": "ABS Setup",
-    "check": false
-  },
-  {
-    "id": "wf12",
     "name_zh": "SPV向主管税局提起股权转让所得税扣缴申报",
     "name_en": "SPV Files Equity Transfer Income Tax Withholding Declaration",
-    "date": "2026-07-09",
+    "date": "2026-07-14",
     "offset": "T+20",
     "duration_zh": "【二十日】",
     "duration_en": "[Within 20 days]",
@@ -876,10 +870,24 @@ const WORKFLOWS = [
     "check": false
   },
   {
-    "id": "wf13",
+    "id": "wf12",
     "name_zh": "项目公司银行办理外方股东信息变更登记",
     "name_en": "Project Company Bank Registers Foreign Shareholder Information Change",
-    "date": "2026-07-09",
+    "date": "2026-07-14",
+    "offset": "T+20",
+    "duration_zh": "【二十日】",
+    "duration_en": "[Within 20 days]",
+    "note_zh": null,
+    "note_en": null,
+    "category_zh": "ESR方外转内相关流程",
+    "category_en": "ESR Outbound/Internal Conversion Process",
+    "check": false
+  },
+  {
+    "id": "wf13",
+    "name_zh": "买方银行外管支付备案登记",
+    "name_en": "Buyer Bank Completes SAFE Payment Filing",
+    "date": "2026-07-14",
     "offset": "T+20",
     "duration_zh": "【二十日】",
     "duration_en": "[Within 20 days]",
@@ -891,23 +899,9 @@ const WORKFLOWS = [
   },
   {
     "id": "wf14",
-    "name_zh": "买方银行外管支付备案登记",
-    "name_en": "Buyer Bank Completes SAFE Payment Filing",
-    "date": "2026-07-09",
-    "offset": "T+20",
-    "duration_zh": "【二十日】",
-    "duration_en": "[Within 20 days]",
-    "note_zh": null,
-    "note_en": null,
-    "category_zh": "ESR方外转内相关流程",
-    "category_en": "ESR Outbound/Internal Conversion Process",
-    "check": false
-  },
-  {
-    "id": "wf15",
     "name_zh": "解除账户共管，SPV购汇，支付给ESR方境外账户",
     "name_en": "Release Account Co-control; SPV Purchases FX and Pays ESR Offshore Account",
-    "date": "2026-08-06",
+    "date": "2026-08-11",
     "offset": "T+40",
     "duration_zh": "【两日】",
     "duration_en": "[Within 2 days]",
@@ -918,10 +912,10 @@ const WORKFLOWS = [
     "check": false
   },
   {
-    "id": "wf16",
+    "id": "wf15",
     "name_zh": "解除SPV共管，资金释放至景顺及ESR",
     "name_en": "Release SPV Co-control and Release Funds to Invesco and ESR",
-    "date": "2026-08-06",
+    "date": "2026-08-11",
     "offset": "T+40",
     "duration_zh": null,
     "duration_en": null,
@@ -937,6 +931,11 @@ const WORKFLOWS = [
 let lang = 'zh';
 let currentFilters = new Set(['milestone','fundflow','workflow']);
 let calYear = 2026, calMonth = 5; // 0-indexed: 5 = June
+const BRIDGE_URL = 'http://127.0.0.1:8765';
+const BOTTLENECK_STORAGE_KEY = 'navigatorTimelineBottlenecksV2';
+let bridgeOnline = false;
+let workbookLastModified = null;
+let savingDateId = null;
 
 function getAllItems() {
   return [
@@ -946,7 +945,164 @@ function getAllItems() {
   ];
 }
 
-const ITEM_INDEX = Object.fromEntries(getAllItems().map(item => [item.id, item]));
+const ITEM_SOURCE_INDEX = Object.fromEntries([
+  ...MILESTONES.map(item => [item.id, item]),
+  ...FUNDFLOWS.map(item => [item.id, item]),
+  ...WORKFLOWS.map(item => [item.id, item])
+]);
+const ITEM_INDEX = ITEM_SOURCE_INDEX;
+
+function loadBottleneckIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(BOTTLENECK_STORAGE_KEY) || '[]');
+    return new Set(Array.isArray(parsed) ? parsed.filter(id => /^wf\d+$/.test(id)) : []);
+  } catch (err) {
+    return new Set();
+  }
+}
+
+let bottleneckIds = loadBottleneckIds();
+
+function saveBottleneckIds() {
+  localStorage.setItem(BOTTLENECK_STORAGE_KEY, JSON.stringify([...bottleneckIds].sort()));
+}
+
+function isBottleneck(item) {
+  return item && item.stream === 'workflow' && bottleneckIds.has(item.id);
+}
+
+function toggleBottleneck(id) {
+  const item = ITEM_SOURCE_INDEX[id];
+  if (!item || !/^wf\d+$/.test(id)) return;
+  if (bottleneckIds.has(id)) bottleneckIds.delete(id);
+  else bottleneckIds.add(id);
+  saveBottleneckIds();
+  renderAllViews();
+}
+
+function renderAllViews() {
+  renderThisWeek();
+  renderTimeline();
+  renderCalendar();
+  renderUpcoming();
+}
+
+function normalizeDateString(value) {
+  if (!value) return null;
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : fmtDate(parsed);
+}
+
+function applyDatesFromWorkbook(datesById) {
+  Object.entries(datesById || {}).forEach(([id, value]) => {
+    const item = ITEM_SOURCE_INDEX[id];
+    const date = normalizeDateString(value);
+    if (item && date) item.date = date;
+  });
+}
+
+function setBridgeStatus(message, level) {
+  const el = document.getElementById('bridge-status');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'bridge-status ' + (level || 'warn');
+}
+
+function setSaveStatus(id, message, level) {
+  const el = document.getElementById('save-status-' + id);
+  if (!el) return;
+  el.textContent = message || '';
+  el.className = 'save-status ' + (level || '');
+}
+
+function applyTimelineResponse(data, statusPrefix) {
+  applyDatesFromWorkbook(data && data.datesById);
+  workbookLastModified = data && data.workbookLastModified ? data.workbookLastModified : workbookLastModified;
+  const stamp = workbookLastModified ? new Date(workbookLastModified).toLocaleString() : '';
+  setBridgeStatus(statusPrefix ? `${statusPrefix}${stamp ? ' · ' + stamp : ''}` : (stamp ? `Excel synced · ${stamp}` : 'Excel synced'), 'ok');
+  bridgeOnline = true;
+  renderAllViews();
+}
+
+async function requestBridge(path, options = {}) {
+  const timeoutMs = options.timeoutMs || 90000;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(BRIDGE_URL + path, {
+      method: options.method || 'GET',
+      headers: options.body ? {'Content-Type': 'application/json'} : undefined,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal
+    });
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!response.ok) {
+      const message = data && data.error ? data.error : `Bridge returned ${response.status}`;
+      throw new Error(message);
+    }
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function checkBridge() {
+  try {
+    await requestBridge('/health', { timeoutMs: 2000 });
+    await refreshFromExcel({ silent: true });
+  } catch (err) {
+    bridgeOnline = false;
+    setBridgeStatus('Excel bridge offline', 'warn');
+  }
+}
+
+async function refreshFromExcel(options = {}) {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.disabled = true;
+  if (!options.silent) setBridgeStatus('Refreshing Excel...', 'warn');
+  try {
+    const data = await requestBridge('/timeline');
+    applyTimelineResponse(data, options.silent ? 'Excel synced' : 'Refreshed');
+  } catch (err) {
+    bridgeOnline = false;
+    setBridgeStatus('Excel bridge offline', 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function saveItemDate(id) {
+  const input = document.getElementById('date-input-' + id);
+  if (!input || !/^\d{4}-\d{2}-\d{2}$/.test(input.value)) {
+    setSaveStatus(id, lang === 'zh' ? '\u8bf7\u9009\u62e9\u6709\u6548\u65e5\u671f' : 'Choose a valid date', 'error');
+    return;
+  }
+  let finalStatus = '';
+  let finalLevel = '';
+  savingDateId = id;
+  renderTimeline();
+  setSaveStatus(id, lang === 'zh' ? '\u6b63\u5728\u5199\u5165 Excel...' : 'Writing to Excel...', '');
+  try {
+    const data = await requestBridge('/date', {
+      method: 'POST',
+      body: { id, date: input.value }
+    });
+    applyTimelineResponse(data, 'Saved');
+    finalStatus = lang === 'zh' ? '\u5df2\u4fdd\u5b58' : 'Saved';
+    finalLevel = 'ok';
+  } catch (err) {
+    bridgeOnline = false;
+    setBridgeStatus('Excel bridge offline', 'error');
+    finalStatus = err && err.message ? err.message : 'Save failed';
+    finalLevel = 'error';
+  } finally {
+    savingDateId = null;
+    renderTimeline();
+    setSaveStatus(id, finalStatus, finalLevel);
+  }
+}
 
 function normalizeTaskName(name) {
   return String(name || '')
@@ -1098,6 +1254,7 @@ function applyLang() {
   document.getElementById('tab-milestone').textContent = t.tabKm;
   document.getElementById('tab-fundflow').textContent = t.tabFf;
   document.getElementById('tab-workflow').textContent = t.tabWf;
+  document.getElementById('refresh-btn').textContent = lang === 'zh' ? '\u5237\u65b0 Excel' : 'Refresh Excel';
   // today badge
   const d = today;
   const mName = lang==='zh' ? (d.getMonth()+1)+'月'+d.getDate()+'日' : T.en.months[d.getMonth()]+' '+d.getDate();
@@ -1176,8 +1333,9 @@ function renderThisWeek() {
     const isDone = isChecked(item);
     const isToday = item.date === todayStr;
     const delayed = isDelayed(item);
+    const bottleneck = isBottleneck(item);
     const div = document.createElement('div');
-    div.className = 'week-item' + (isToday ? ' today' : '') + (isDone ? ' done' : '') + (delayed ? ' delayed-item' : '');
+    div.className = 'week-item' + (isToday ? ' today' : '') + (isDone ? ' done' : '') + (delayed ? ' delayed-item' : '') + (bottleneck ? ' bottleneck-item' : '');
     div.innerHTML = `
       <div class="week-date-box">
         <div class="week-date-month">${lang==='zh' ? `${dateObj.getMonth()+1}月` : T.en.months[dateObj.getMonth()].slice(0,3)}</div>
@@ -1245,6 +1403,7 @@ function renderTimeline() {
     const isToday = item.date === todayStr;
     const isDone = isChecked(item);
     const delayed = isDelayed(item);
+    const bottleneck = isBottleneck(item);
 
     let iconClass = item.stream==='milestone' ? 'upcoming-milestone' : item.stream==='fundflow' ? 'upcoming-fundflow' : 'upcoming-workflow';
     if (isDone) iconClass = 'done';
@@ -1264,7 +1423,7 @@ function renderTimeline() {
     const daysLabel = t.daysLeft(diff);
 
     const div = document.createElement('div');
-    div.className = 'timeline-item' + (isToday?' today-item':'') + (delayed ? ' delayed-item' : '');
+    div.className = 'timeline-item' + (isToday?' today-item':'') + (delayed ? ' delayed-item' : '') + (bottleneck ? ' bottleneck-item' : '');
     div.innerHTML = `
       <div class="step-icon ${iconClass}">${iconContent}</div>
       <div class="step-content">
@@ -1285,14 +1444,62 @@ function renderTimeline() {
       </div>
       <input type="checkbox" class="step-checkbox" ${isDone?'checked':''} onclick="toggleCheck('${item.id}',this)" title="${lang==='zh'?'标记完成':'Mark complete'}">
     `;
+    const stepContent = div.querySelector('.step-content');
+    if (stepContent) {
+      const actions = document.createElement('div');
+      actions.className = 'step-actions';
+
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.className = 'date-edit';
+      dateInput.id = 'date-input-' + item.id;
+      dateInput.value = item.date;
+      dateInput.setAttribute('aria-label', 'Edit ' + name + ' date');
+      actions.appendChild(dateInput);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'date-save-btn';
+      saveBtn.id = 'date-save-' + item.id;
+      saveBtn.disabled = savingDateId === item.id;
+      saveBtn.textContent = saveBtn.disabled
+        ? (lang === 'zh' ? '\u4fdd\u5b58\u4e2d' : 'Saving')
+        : (lang === 'zh' ? '\u4fdd\u5b58\u65e5\u671f' : 'Save date');
+      saveBtn.addEventListener('click', () => saveItemDate(item.id));
+      actions.appendChild(saveBtn);
+
+      if (item.stream === 'workflow') {
+        const flagBtn = document.createElement('button');
+        flagBtn.type = 'button';
+        flagBtn.className = 'flag-btn' + (bottleneck ? ' active' : '');
+        flagBtn.textContent = bottleneck
+          ? (lang === 'zh' ? '\u5df2\u6807\u8bb0\u74f6\u9888' : 'Bottleneck')
+          : (lang === 'zh' ? '\u6807\u8bb0\u74f6\u9888' : 'Flag bottleneck');
+        flagBtn.addEventListener('click', () => toggleBottleneck(item.id));
+        actions.appendChild(flagBtn);
+
+        if (bottleneck) {
+          const badge = document.createElement('span');
+          badge.className = 'bottleneck-badge';
+          badge.textContent = lang === 'zh' ? '\u74f6\u9888' : 'Bottleneck';
+          actions.appendChild(badge);
+        }
+      }
+
+      const status = document.createElement('span');
+      status.className = 'save-status';
+      status.id = 'save-status-' + item.id;
+      actions.appendChild(status);
+      stepContent.appendChild(actions);
+    }
+
     container.appendChild(div);
   });
 }
 
 function toggleCheck(id, cb) {
   setCheckedById(id, cb.checked);
-  renderThisWeek();
-  renderTimeline();
+  renderAllViews();
 }
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────
@@ -1470,6 +1677,7 @@ function renderHolidays() {
 
 // ─── INIT ──────────────────────────────────────────────────────────────
 setLang('zh');
+checkBridge();
 </script>
 </body>
 </html>
